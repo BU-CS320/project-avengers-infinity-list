@@ -20,38 +20,38 @@ Vanilla Features
 Next meeting, we will compare efficiencies between our codes and choose the most efficient versions for the functions we already have from the homeworks. The following functions, which we do not have, will be evenly divided up in the following manner.
 
 David Kirk
-Equals
-Not-equal
-Less-than
-Less-than-or-equal
+- Equals
+- Not-equal
+- Less-than
+- Less-than-or-equal
 
 Jason Hong
-Greater-than-or-equal
-Greater-than
-Floating-Point Division
-Floating-Point Exponentiation
+- Greater-than-or-equal
+- Greater-than
+- Floating-Point Division
+- Floating-Point Exponentiation
 
 James Mortenson
-Integer Exponential
-List indexing operator
-Unary minus
-(some) atomic expressions
+- Integer Exponential
+- List indexing operator
+- Unary minus
+- (some) atomic expressions
 
 Mix-In Features
 We will be implementing ALL of the "simple" additions, as well as TWO of the engineering best practices, and the Parser error reporting features.
 
 David Kirk
-Infix operator (.)
-Quickcheck generator and shrinker for AST
+- Infix operator (.)
+- Quickcheck generator and shrinker for AST
 
 Jason Hong
-Multi-support lambda
-Haddock style comments and html documentation
+- Multi-support lambda
+- Haddock style comments and html documentation
 
 James Mortenson
-Sequential let
-Adding letrec
+- Sequential let
+- Adding letrec
 
-Together: Error reporting Parser monad errors, w/ clear error messages
+- Together: Error reporting Parser monad errors, w/ clear error messages
 
 
