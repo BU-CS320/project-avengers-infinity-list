@@ -16,7 +16,7 @@ But actually, we're planning to add the following features to the bare minimum p
 - error reporting for parser monad (10pts)
 
 ## Plan
-Vanilla Features
+###### Vanilla Features
 Next meeting, we will compare efficiencies between our codes and choose the most efficient versions for the functions we already have from the homeworks. The following functions, which we do not have, will be evenly divided up in the following manner.
 
 David Kirk
@@ -37,7 +37,7 @@ James Mortenson
 - Unary minus
 - (some) atomic expressions
 
-Mix-In Features
+###### Mix-In Features
 We will be implementing ALL of the "simple" additions, as well as TWO of the engineering best practices, and the Parser error reporting features.
 
 David Kirk
@@ -52,6 +52,6 @@ James Mortenson
 - Sequential let
 - Adding letrec
 
-- Together: Error reporting Parser monad errors, w/ clear error messages
+Together: Error reporting Parser monad errors, w/ clear error messages
 
 
