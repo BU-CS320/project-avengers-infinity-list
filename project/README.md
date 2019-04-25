@@ -19,6 +19,19 @@ But actually, we're planning to add the following features to the bare minimum p
 ### Vanilla Features
 Next meeting, we will compare efficiencies between our codes and choose the most efficient versions for the functions we already have from the homeworks. The following functions, which we do not have, will be evenly divided up in the following manner.
 
+TO ADD:
+- Update existing operators (+,-,*,//) to work with multiple types
+- Multiline and single comments
+- New list syntax
+- Static check for unused variables
+- Tests
+- Separator (;)
+- print() keyword and logging support (like a console)
+- Misc. symbols:
+  - \, ->, [, ], '', "", --, {-, -}
+- Predefined functions:
+  - elem, map, filter, ord, chr, float, int
+
 David Kirk
 - Equals
 - Not-equal
