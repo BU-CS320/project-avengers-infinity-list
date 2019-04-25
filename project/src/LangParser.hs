@@ -74,7 +74,10 @@ addSubExpr = withInfix multDivExpr [("+", Plus), ("-", Minus)]
 -- Just (1 - 2 - 3 - 4,"")
 
 multDivExpr :: Parser Ast
-multDivExpr = withInfix notExp [("*", Mult), ("/", Div)]
+multDivExpr = withInfix expExpr [("*", Mult), ("/", Div)]
+
+expExpr :: Parser Ast
+expExpr = withInfix notExp [("**", IntExp)]
 
 
 notExp :: Parser Ast --HAS PROBLEMS
