@@ -199,6 +199,10 @@ eval (Or x y) =
 eval (Not x) =
   do x' <- evalBool x
      return (B (not x'))
+eval (IntExp b e) =
+  do b' <- evalInt b
+     e' <- evalInt e
+     return (I (b' ^ e'))
 eval (Plus x y) =
   do x' <- evalInt x
      y' <- evalInt y
