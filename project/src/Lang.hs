@@ -29,6 +29,18 @@ evalInt a = do a' <- eval a
                  I i -> return i
                  _ -> err "Not an int"
 
+evalFloat :: Ast -> EnvUnsafe Env Float
+evalFloat a = do a' <- eval a
+                 case a' of
+                   F f -> return f
+                   _ -> err "Not a float"
+
+evalChar :: Ast -> EnvUnsafe Env Char
+evalChar a = do a' <- eval a
+                case a' of
+                  C c -> return c
+                  _ -> err "Not an int"
+
 evalBool :: Ast -> EnvUnsafe Env Bool
 evalBool a = do a' <- eval a
                 case a' of
@@ -93,6 +105,11 @@ data Ast = ValBool Bool
          | Plus Ast Ast | Minus Ast Ast | Mult Ast Ast | Div Ast Ast
          | IntExp Ast Ast
 
+         | Equals Ast Ast
+         | NotEquals Ast Ast
+         | LessThan Ast Ast
+         | LessThanOrEquals Ast Ast
+
          | Nil
          | Cons Ast Ast
          | ListIndex Ast Ast
@@ -115,9 +132,14 @@ data Val = I Integer | B Bool | F Float | C Char
          | Ls [Val] | S [Char]
          | Fun (Val -> Unsafe Val) -- since this is a functional language, one thing that can be returned is a function
 
+
+
 instance Show Val where
   show (I i) = show i
+  show (F f) = show f
   show (B b) = show b
+  show (C c) = show c
+  show (S s) = show s
   show (Ls ls) = show ls
   show (Fun _) = "\\ x -> ?" -- no good way to show a function
 
@@ -182,10 +204,37 @@ pascalRow k = drop k ([(choose n k) | n <- [0..]]) where
 type Env = Map String Val
 
 
+eqVal :: Val -> Val -> Bool
+eqVal (I x) (I y) = x == y
+eqVal (F x) (F y) = x == y
+eqVal (B x) (B y) = x == y
+eqVal (C x) (C y) = x == y
+eqVal (S x) (S y) = x == y
+eqVal (Ls []) (Ls []) = True
+eqVal (Ls (x:xs)) (Ls (y:ys)) = (eqVal x y) && (eqVal (Ls xs) (Ls ys))
+eqVal _ _ = False
+
+
+equals :: Ast -> Ast -> EnvUnsafe Env Val
+equals x y =
+  do x' <- eval x
+     y' <- eval y
+     return (B (eqVal x' y'))
+
+notEquals :: Ast -> Ast -> EnvUnsafe Env Val
+notEquals x y =
+  do x' <- eval x
+     y' <- eval y
+     return (B (not $ eqVal x' y'))
+
+
+
 eval :: Ast -> EnvUnsafe Env Val
 eval (ValBool bool) = return (B bool)
 eval (ValInt int) = return (I int)
 eval (Var str) = valOf str
+eval (Equals x y) = equals x y
+eval (NotEquals x y) = notEquals x y
 eval (And x y) =
   do x' <- evalBool x
      y' <- evalBool y
