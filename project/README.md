@@ -3,9 +3,9 @@
 Follow the [instructions](INSTRUCTIONS.md), use this space to document your project for yourself and the graders.
 
 ## Names
-David Kirk dsak@bu.edu
-Jason Hong jason810@bu.edu
-James Mortenson jimmort@bu.edu
+- David Kirk (dsak@bu.edu)
+- Jason Hong (jason810@bu.edu)
+- James Mortenson (jimmort@bu.edu)
 
 ## Summary
 This is the programming language with which we will defeat ThanOS. Through our masterful use of recursion, we will create a stack overflow so large that ThanOS itself will split, shattering the Infinity Monad into its six components: Maybe, Reader, Writer, IO, State, and Parser. With the power of these Monadic Gems, we will conquer the universe and divide the number of sane CS majors by half.
