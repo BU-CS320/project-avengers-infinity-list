@@ -52,10 +52,6 @@ local :: (r -> r) -> EnvUnsafe r a -> EnvUnsafe r a
 local changeEnv comp  = EnvUnsafe (\e -> runEnvUnsafe comp (changeEnv e) )
 
 
-
-
-
-
 -- ...
 
 -- ungraded bonus challenge: use a helper type class to do this functionality
@@ -75,7 +71,7 @@ e6 = showPretty (Not $ Not $ ((Var "fun") `App` (ValInt 2)) `App` (Not $ ValInt 
 example = let x = Var "x"
           in App (Lam "x" ( x `Plus` x))  (ValInt 7)
 example' = run example
-      
+
 example2 = let x = Var "x"; y = Var "y"
            in ((Lam "x" (Lam "y" ( x `Plus` y))) `App` (ValInt 7)) `App` (ValInt 4)
 example2' = run example2
@@ -99,6 +95,7 @@ data Ast = ValBool Bool
 
          | Nil
          | Cons Ast Ast
+         | ListIndex Ast Ast
 
          | If Ast Ast Ast
          | Let String Ast Ast
@@ -226,13 +223,19 @@ eval (IntExp b e) =
      e' <- evalInt e
      return (I (b' ^ e'))
 eval (Nil) = return (Ls [])
-eval (Cons x y) = 
+eval (Cons x y) =
   do x' <- eval x
      y' <- eval y
      case (y') of
        Ls list -> return (Ls (x':list))
        _ -> err "Second term must be a list"
-eval (If condition ifTrue ifFalse) = 
+eval (ListIndex lst idx) =
+  do lst' <- evalList lst
+     idx' <- evalInt idx
+     case (validListIndex lst' idx') of
+       Left errorMsg -> err errorMsg
+       Right val -> return val
+eval (If condition ifTrue ifFalse) =
   do condition' <- eval condition
      case (condition') of
        B True -> eval ifTrue
@@ -256,8 +259,10 @@ testlam1 = Lam "x" (Plus (Var "x") (ValInt 4))
 testlam2 = App testlam1 (ValInt 3)
 
 
-
-
+validListIndex :: [Val] -> Integer -> Either String Val
+validListIndex lst idx
+  | (fromIntegral idx) >= (length lst) = Left $ "Index too large. Index given: " ++ (show idx) ++ " but maximum is: " ++ (show ((length lst) - 1))
+  | otherwise          = Right (lst !! (fromIntegral idx))
 
 
 -- This is helpful for testing and debugging
@@ -280,6 +285,7 @@ showFullyParen (App f a) = "( " ++ (showFullyParen f)  ++ " " ++ (showFullyParen
 showFullyParen (Var s) = "( " ++ s ++ ")"
 showFullyParen (Cons h t) = "(" ++ (showFullyParen h)  ++ " : " ++ (showFullyParen t) ++ ")"
 showFullyParen Nil = "( [] )"
+showFullyParen (ListIndex lst idx) = "(" ++ (showFullyParen lst) ++ " !! " ++ (showFullyParen idx) ++ ")"
 
 
 -- provide a nice show with minimal parentheses, for testing an documentation
@@ -309,6 +315,7 @@ showPretty (Plus l r) i = parenthesize 10 i $ (showPretty l 10) ++ " + " ++ (sho
 showPretty (Mult l r) i = parenthesize 12 i $ (showPretty l 12) ++ " * " ++ (showPretty r 13)
 showPretty (Div l r) i = parenthesize 12 i $ (showPretty l 12) ++ " / " ++ (showPretty r 13)
 showPretty (IntExp b e) i = parenthesize 13 i $ (showPretty b 13) ++ " ** " ++ (showPretty e 14)
+showPretty (ListIndex lst idx) i = parenthesize 14 i $ (showPretty lst 14) ++ " !! " ++ (showPretty idx 14)
 
 showPretty (Not l ) i = parenthesize 14 i $  " ! " ++ (showPretty l 14)
 
