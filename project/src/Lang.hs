@@ -95,6 +95,7 @@ data Ast = ValBool Bool
 
          | ValInt Integer
          | Plus Ast Ast | Minus Ast Ast | Mult Ast Ast | Div Ast Ast
+         | IntExp Ast Ast
 
          | Nil
          | Cons Ast Ast
@@ -199,6 +200,10 @@ eval (Or x y) =
 eval (Not x) =
   do x' <- evalBool x
      return (B (not x'))
+eval (IntExp b e) =
+  do b' <- evalInt b
+     e' <- evalInt e
+     return (I (b' ^ e'))
 eval (Plus x y) =
   do x' <- evalInt x
      y' <- evalInt y
