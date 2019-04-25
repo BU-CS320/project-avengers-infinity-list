@@ -19,36 +19,38 @@ But actually, we're planning to add the following features to the bare minimum p
 ### Vanilla Features
 Next meeting, we will compare efficiencies between our codes and choose the most efficient versions for the functions we already have from the homeworks. The following functions, which we do not have, will be evenly divided up in the following manner.
 
-TO ADD:
-- Update existing operators (+,-,*,//) to work with multiple types
-- Multiline and single comments
-- New list syntax
-- Static check for unused variables
-- Tests
-- Separator (;)
+TO DO LATER:
 - print() keyword and logging support (like a console)
-- Misc. symbols:
-  - \\, ->, [, ], '', "", --, {-, -}
-- Predefined functions:
-  - elem, map, filter, ord, chr, float, int
+
 
 David Kirk
 - Equals
 - Not-equal
 - Less-than
 - Less-than-or-equal
+- Separator (;)
+- Predefined functions:
+  - elem, map, filter, ord, chr, float, int
 
 Jason Hong
 - Greater-than-or-equal
 - Greater-than
 - Floating-Point Division
 - Floating-Point Exponentiation
+- Tests
+- Chars/strings and related synax (', ")
+- New list syntax
+
 
 James Mortenson
 - Integer Exponential
 - List indexing operator
 - Unary minus
 - (some) atomic expressions
+- Update existing operators (+,-,*,//) to work with multiple types
+- Multiline and single comments
+- Static check for unused variables
+
 
 ### Mix-In Features
 We will be implementing ALL of the "simple" additions, as well as TWO of the engineering best practices, and the Parser error reporting features.
