@@ -120,6 +120,8 @@ data Ast = ValBool Bool
          | Var String
          | Lam String Ast
          | App Ast Ast
+
+         | Separator Ast Ast
          deriving (Eq,Show) -- helpful to use this during testing
          --deriving Eq
 
@@ -227,6 +229,31 @@ notEquals x y =
      y' <- eval y
      return (B (not $ eqVal x' y'))
 
+lessThan :: Ast -> Ast -> EnvUnsafe Env Val
+lessThan x y =
+  do x' <- eval x
+     y' <- eval y
+     case (x', y') of
+       (I x'', I y'') -> return (B (x'' < y''))
+       (F x'', F y'') -> return (B (x'' < y''))
+       (B x'', B y'') -> return (B (x'' < y''))
+       (C x'', C y'') -> return (B (x'' < y''))
+       (S x'', S y'') -> return (B (x'' < y''))
+       _              -> return (B False)
+
+--maybe wrong because it will return true on equal lists?
+lessThanOrEquals :: Ast -> Ast -> EnvUnsafe Env Val
+lessThanOrEquals x y =
+  do x' <- eval x
+     y' <- eval y
+     case (x', y') of
+       (I x'', I y'') -> return (B (x'' <= y''))
+       (F x'', F y'') -> return (B (x'' <= y''))
+       (B x'', B y'') -> return (B (x'' <= y''))
+       (C x'', C y'') -> return (B (x'' <= y''))
+       (S x'', S y'') -> return (B (x'' <= y''))
+       _              -> return (B False)
+     
 
 
 eval :: Ast -> EnvUnsafe Env Val
@@ -235,6 +262,8 @@ eval (ValInt int) = return (I int)
 eval (Var str) = valOf str
 eval (Equals x y) = equals x y
 eval (NotEquals x y) = notEquals x y
+eval (LessThan x y) = lessThan x y
+eval (LessThanOrEquals x y) = lessThanOrEquals x y
 eval (And x y) =
   do x' <- evalBool x
      y' <- evalBool y
@@ -294,6 +323,10 @@ eval (If condition ifTrue ifFalse) =
        B True -> eval ifTrue
        B False -> eval ifFalse
        _ -> err "Condition must evaluate to a boolean"
+eval (Separator ast1 ast2) =
+  do ast1' <- eval ast1
+     ast2' <- eval ast2
+     return ast2'
 eval (Let var val bod) =
   do val' <- eval val
      local (Map.insert var val') (eval bod)
