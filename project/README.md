@@ -28,7 +28,7 @@ TO ADD:
 - Separator (;)
 - print() keyword and logging support (like a console)
 - Misc. symbols:
-  - \, ->, [, ], '', "", --, {-, -}
+  - \\, ->, [, ], '', "", --, {-, -}
 - Predefined functions:
   - elem, map, filter, ord, chr, float, int
 
