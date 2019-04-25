@@ -95,6 +95,7 @@ data Ast = ValBool Bool
 
          | ValInt Integer
          | Plus Ast Ast | Minus Ast Ast | Mult Ast Ast | Div Ast Ast
+         | IntExp Ast Ast
 
          | Nil
          | Cons Ast Ast
@@ -220,6 +221,10 @@ eval (Div x y) = --not changing this one because div by 0
          I yInt -> return (I (xInt + yInt))
          _ -> err "Invalid types"
        _ -> err "Invalid types"
+eval (IntExp b e) =
+  do b' <- evalInt b
+     e' <- evalInt e
+     return (I (b' ^ e'))
 eval (Nil) = return (Ls [])
 eval (Cons x y) = 
   do x' <- eval x
@@ -267,6 +272,7 @@ showFullyParen (Plus l r) = "(" ++ (showFullyParen l) ++ " + " ++ (showFullyPare
 showFullyParen (Minus l r) = "(" ++ (showFullyParen l) ++ " - " ++ (showFullyParen r) ++ ")"
 showFullyParen (Mult l r) = "(" ++ (showFullyParen l) ++ " * " ++ (showFullyParen r) ++ ")"
 showFullyParen (Div l r) = "(" ++ (showFullyParen l) ++ " / " ++ (showFullyParen r) ++ ")"
+showFullyParen (IntExp b e) = "(" ++ (showFullyParen b) ++ " ** " ++ (showFullyParen e) ++ ")"
 showFullyParen (If b t e) = "(if " ++ (showFullyParen b) ++ " then " ++ (showFullyParen t) ++ " else " ++ (showFullyParen e) ++ ")"
 showFullyParen (Let v a bod) = "(let " ++ v ++ " = " ++ (showFullyParen a) ++ " in " ++ (showFullyParen bod) ++ ")"
 showFullyParen (Lam v bod) = "(\\ " ++ v ++ " -> " ++ (showFullyParen bod) ++ ")"
@@ -302,6 +308,7 @@ showPretty (Minus l r) i = parenthesize 10 i $ (showPretty l 10) ++ " - " ++ (sh
 showPretty (Plus l r) i = parenthesize 10 i $ (showPretty l 10) ++ " + " ++ (showPretty r 11)
 showPretty (Mult l r) i = parenthesize 12 i $ (showPretty l 12) ++ " * " ++ (showPretty r 13)
 showPretty (Div l r) i = parenthesize 12 i $ (showPretty l 12) ++ " / " ++ (showPretty r 13)
+showPretty (IntExp b e) i = parenthesize 13 i $ (showPretty b 13) ++ " ** " ++ (showPretty e 14)
 
 showPretty (Not l ) i = parenthesize 14 i $  " ! " ++ (showPretty l 14)
 
