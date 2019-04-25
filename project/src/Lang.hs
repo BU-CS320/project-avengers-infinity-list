@@ -111,8 +111,8 @@ data Ast = ValBool Bool
 
 
 -- the goal of the program is to return a value
-data Val = I Integer | B Bool
-         | Ls [Val]
+data Val = I Integer | B Bool | F Float | C Char
+         | Ls [Val] | S [Char]
          | Fun (Val -> Unsafe Val) -- since this is a functional language, one thing that can be returned is a function
 
 instance Show Val where
