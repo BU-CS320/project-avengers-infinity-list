@@ -96,14 +96,28 @@ example4 = let x = Var "x"; y = Var "y"
            in (Cons $ Lam "x" (Lam "y" ( x `Plus` y))) $  (Cons ( Lam "x" (Lam "y" ( x `Minus` y))) $ Nil)
 example4' = run example4
 
+example5 = (Equals (ValFloat 5.0) (ValInt 5))
+example5' = run example5
+
+example6 = (Equals (ValFloat 6.0) (ValFloat 6.0))
+example6' = run example6
+
+example7 = Cons (ValInt 4) (Cons (ValBool True) (Cons (ValChar 'c') (Cons (ValString "meep") Nil)))
+example7' = run example7
+
+example8 = Equals (example7) (example6)
+example8' = run example8
+
 -- Here is the abstract syntax tree for our language
 
 data Ast = ValBool Bool
          | And Ast Ast | Or Ast Ast | Not Ast
 
-         | ValInt Integer
+         | ValInt Integer | ValFloat Float
          | Plus Ast Ast | Minus Ast Ast | Mult Ast Ast | Div Ast Ast
          | IntExp Ast Ast
+
+         | ValChar Char | ValString String
 
          | Equals Ast Ast
          | NotEquals Ast Ast
@@ -259,6 +273,9 @@ lessThanOrEquals x y =
 eval :: Ast -> EnvUnsafe Env Val
 eval (ValBool bool) = return (B bool)
 eval (ValInt int) = return (I int)
+eval (ValFloat float) = return (F float)
+eval (ValChar char) = return (C char)
+eval (ValString str) = return (S str)
 eval (Var str) = valOf str
 eval (Equals x y) = equals x y
 eval (NotEquals x y) = notEquals x y
