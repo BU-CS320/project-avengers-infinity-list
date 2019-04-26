@@ -108,6 +108,9 @@ example7' = run example7
 example8 = Equals (example7) (example6)
 example8' = run example8
 
+example9 = Separator (example7) (example8)
+example9' = run example9
+
 -- Here is the abstract syntax tree for our language
 
 data Ast = ValBool Bool

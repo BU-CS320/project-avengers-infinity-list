@@ -33,6 +33,16 @@ keywords = ["if","then","else", "let", "in", "true","false"]
 apps :: Parser Ast
 apps = withInfix cons [("",App)] -- the tokens eat up all the spaces so we split on the empty string
 
+seps :: Parser Ast
+seps = seps' <|> cons
+
+--right associative
+seps' :: Parser Ast
+seps' = do x <- (token cons)
+           token (literal ";")
+           y <- (token seps)
+           return (Separator x y)
+
 cons :: Parser Ast
 cons = cons' <|> orExpr
 
@@ -58,12 +68,15 @@ orExpr = withInfix andExpr [("||", Or)]
 -- Just (true,"")
 
 andExpr :: Parser Ast
-andExpr = withInfix addSubExpr [("&&", And)]
+andExpr = withInfix comparison [("&&", And)]
 
 -- *LangParser> parse andExpr "false"
 -- Just (false,"")
 -- *LangParser> parse andExpr "false && false"
 -- Just (false && false,"")
+
+comparison :: Parser Ast
+comparison = withInfix addSubExpr [("==", Equals), ("/=", NotEquals), ("<=", LessThanOrEquals), ("<", LessThan)]
 
 addSubExpr :: Parser Ast
 addSubExpr = withInfix multDivExpr [("+", Plus), ("-", Minus)]
