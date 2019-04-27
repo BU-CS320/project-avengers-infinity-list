@@ -91,7 +91,7 @@ notExp' = do token (literal "!")
              return (Not x)
 
 atoms:: Parser Ast
-atoms = ints <|> bools  <|>  nil <|> parens <|> ifParser <|> letParser <|>  lambdaParser <|> vars
+atoms = ints <|> floats <|> bools  <|>  nil <|> parens <|> ifParser <|> letParser <|>  lambdaParser <|> vars
 
 -- *LangParser> parse atoms "111"
 -- Just (111,"")
@@ -108,6 +108,10 @@ ints :: Parser Ast
 ints = do s <- token $ intParser
           return (ValInt s)
 
+floats :: Parser Ast
+floats = do s <- token $ floatParser
+            return (ValFloat s)
+
 bools :: Parser Ast
 bools = do s <- token $ varParser
            if (s == "true" || s == "false")
@@ -116,6 +120,20 @@ bools = do s <- token $ varParser
              "false" -> return (ValBool False)
              otherwise -> failParse --should not happen
            else failParse
+
+gThanOrEqual :: Parser Ast
+gThanOrEqual x = undefined
+
+greaterThan :: Parser Ast
+greaterThan x = undefined
+
+floatingDiv :: Parser Ast
+floatingDiv = undefined
+
+floatingExp :: Parser Ast
+floatingExp = undefined 
+
+
 
 nil :: Parser Ast
 nil = do token $ literal "[]"

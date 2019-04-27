@@ -90,6 +90,7 @@ data Ast = ValBool Bool
          | And Ast Ast | Or Ast Ast | Not Ast
 
          | ValInt Integer
+         | ValFloat Float
          | Plus Ast Ast | Minus Ast Ast | Mult Ast Ast | Div Ast Ast
          | IntExp Ast Ast
 

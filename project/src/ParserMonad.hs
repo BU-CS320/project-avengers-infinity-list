@@ -156,6 +156,17 @@ intParser = do r <- (literal "-") <||> natParser
                 Left _ -> fmap (0-) natParser
                 Right n -> return n
 
+floatParser :: Parser Float
+floatParser = do sgn <- (literal "-") <||> (rep digit)
+                 case sgn of
+                   Left _ -> do x <- (rep digit)
+                                _ <- (literal ".")
+                                y <- (rep digit)
+                                return $ 0-(read (x ++ "." ++ y) :: Float)
+                   Right x -> do (literal ".")
+                                 y <- (rep digit)
+                                 return $ (read (x ++ "." ++ y) :: Float)
+
 --parse spaces, throw them away
 spaces :: Parser ()
 spaces =  do rep (sat isSpace)
