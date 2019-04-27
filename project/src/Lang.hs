@@ -150,7 +150,6 @@ run a = runEnvUnsafe (eval a) stdLib
 
 type Env = Map String Val
 
-
 eval :: Ast -> EnvUnsafe Env Val
 eval (ValBool bool) = return (B bool)
 eval (ValInt int) = return (I int)
@@ -204,10 +203,6 @@ eval (Div x y) = --not changing this one because div by 0
          I yInt -> return (I (xInt + yInt))
          _ -> err "Invalid types"
        _ -> err "Invalid types"
-eval (IntExp b e) =
-  do b' <- evalInt b
-     e' <- evalInt e
-     return (I (b' ^ e'))
 eval (Nil) = return (Ls [])
 eval (Cons x y) =
   do x' <- eval x

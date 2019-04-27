@@ -162,7 +162,7 @@ floatParser = do sgn <- (literal "-") <||> (rep digit)
                    Left _ -> do x <- (rep digit)
                                 _ <- (literal ".")
                                 y <- (rep digit)
-                                return $ (read (x ++ "." ++ y) :: Float)
+                                return $ 0 - (read (x ++ "." ++ y) :: Float)
                    Right x -> do (literal ".")
                                  y <- (rep digit)
                                  return $ (read (x ++ "." ++ y) :: Float)
@@ -182,7 +182,7 @@ token pa = do spaces
 
 -- parse what we will consider a good variable name
 varParser :: Parser String
-varParser = 
+varParser =
   do head <- sat isAlpha
      tail <- rep (sat isAlpha <|> digit <|>  sat (=='\''))
      return $ head : tail
