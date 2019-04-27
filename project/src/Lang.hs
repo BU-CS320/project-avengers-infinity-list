@@ -3,6 +3,8 @@ module Lang where
 import Data.Map (Map)
 import Data.Set (Set)
 import Data.List (isSubsequenceOf)
+import Data.Char
+import Data.Int
 import qualified Data.Map as Map
 import qualified Data.Set as Set --used for lambda stuff
 
@@ -138,6 +140,8 @@ data Ast = ValBool Bool
          | Lam String Ast
          | App Ast Ast
 
+         | Comment
+
          | Separator Ast Ast
          deriving (Eq,Show) -- helpful to use this during testing
          --deriving Eq
@@ -150,6 +154,12 @@ data Ast = ValBool Bool
 data Val = I Integer | B Bool | F Float | C Char
          | Ls [Val] | S [Char]
          | Fun (Val -> Unsafe Val) -- since this is a functional language, one thing that can be returned is a function
+
+
+{- 
+
+
+-}
 
 
 
@@ -169,56 +179,20 @@ stdLib = Map.fromList
    ("head", Fun $ \ v -> case v of Ls (head:_) -> Ok $ head
                                    _           -> Error "can only call head on a non empty list"),
    ("len", Fun $ \ v -> case v of Ls ls -> Ok $ (I (fromIntegral (length ls)))
-                                  _     -> Error "")]
+                                  _     -> Error "can only call length on a list"),
+   ("ord", Fun $ \ v -> case v of C ch -> Ok $ (I (fromIntegral (ord ch)))
+                                  _    -> Error "can only call ord on a char"),
+   ("chr", Fun $ \ v -> case v of I integer -> Ok $ (C (chr (fromIntegral integer)))
+                                  _    -> Error "can only call chr on a char"),
+   ("float", Fun $ \ v -> case v of I integer -> Ok $ (F (realToFrac (fromIntegral integer)))
+                                    _    -> Error "can only call float on an int"),
+   ("int", Fun $ \ v -> case v of F fl -> Ok $ (F (fromIntegral (truncate fl)))
+                                  _    -> Error "can only call int on a float")]
 
 -- helper function that runs with a standard library of functions: head, tail ...
 run :: Ast -> Unsafe Val
 run a = runEnvUnsafe (eval a) stdLib
 
-{-
---DELETE ME LATER--ANALYTIC HW
-interleave :: [a] -> [a] -> [a]
-interleave (head1:body1) (head2:body2) = ([head1] ++ [head2] ++ (interleave body1 body2))
-
-iter :: (a -> a) -> a -> [a]
-iter func head = [head] ++ (iter func (func head))
-
-linCong :: Integer -> Integer -> Integer -> Integer -> Integer
-linCong a b c x = (a*x+b) `mod` c
-
-rands :: Integer -> Integer -> Integer -> Integer -> [Integer]
-rands seed a b c = [seed] ++ (rands (linCong a b c seed) a b c)
-
-factors :: Integer -> [Integer]
-factors x = filter (\y -> x `mod` y == 0) [1..x]
-
-hamming :: [Integer] --here's a terrible way to do it
-hamming = filter (\x -> isSubsequenceOf [2,3,5] (factors x)) [1..]
-
---BROKEN BROKEN BROKEN BROKEN BROKEN BROKEN BROKEN BROKEN
-allPairs :: [(Integer, Integer)]
-allPairs = [(0,0)] ++ (map getNext allPairs) where
-  getNext (x, y) = if (y > 0) then (x+1, y-1) else (0, x+1)
-
-
-expand :: [Integer] -> [Integer]
-expand (val:next) = (toList val val) ++ (expand next) where
-  toList val 0 = []
-  toList val counter = [val] ++ (toList val (counter-1))
-
-pascalRow :: Int -> [Int]
-pascalRow k = drop k ([(choose n k) | n <- [0..]]) where
-  choose n 0 = 1
-  choose 0 k = 0
-  choose n k = choose (n-1) (k-1) * n `div` k 
---flatten :: [(a, a)] -> [a]
---flatten [] = []
---flatten ((left, right):body) = [left] ++ [right] ++ (flatten body)
-
---interleave :: [a] -> [a] -> [a]
---interleave l1 l2 = flatten [(x, y) | x <- l1, y <- l2]
-
--}
 
 type Env = Map String Val
 

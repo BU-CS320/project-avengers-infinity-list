@@ -102,7 +102,7 @@ notExp' = do token (literal "!")
              return (Not x)
 
 atoms:: Parser Ast
-atoms = ints <|> bools  <|>  nil <|> parens <|> ifParser <|> letParser <|>  lambdaParser <|> vars
+atoms = ints <|> bools <|> nil <|> parens <|> ifParser <|> letParser <|> lambdaParser <|> vars <|> comment
 
 -- *LangParser> parse atoms "111"
 -- Just (111,"")
@@ -167,6 +167,12 @@ parens = do token $ literal "("
             ast <- parser
             token $ literal ")"
             return ast
+
+comment :: Parser Ast
+comment = do token $ literal "{-"
+             token $ literal "-}"
+             return $ Comment
+
 
 -- *LangParser> parse parser "(true)"
 -- Just (true,"")
