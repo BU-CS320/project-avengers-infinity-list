@@ -31,7 +31,7 @@ parser = apps
 keywords = ["if","then","else", "let", "in", "true","false"]
 
 apps :: Parser Ast
-apps = withInfix cons [("",App)] -- the tokens eat up all the spaces so we split on the empty string
+apps = withInfix seps [("",App)] -- the tokens eat up all the spaces so we split on the empty string
 
 seps :: Parser Ast
 seps = seps' <|> cons
