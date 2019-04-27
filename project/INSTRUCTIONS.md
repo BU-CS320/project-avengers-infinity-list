@@ -1,19 +1,23 @@
 # Project Instructions
-* Milestone 1: **4/23/19**
+* Milestone 1: 4/23/19
   * Join a Piazza group as organized by Prof Snyder
   * Create a group repo, and summarize your plans in the readme:
     * Which Additional Features you plan to do (tentative, can be changed)
     * Who has primary responsibility for what (should be approximately equal, and, again, can be changed)
   * Completion is worth 5pts/100.
-* Milestone 2: 4/29/19
+* Milestone 2: **4/29/19**
   * Submit your tests for the project
     * Tests should be organized in a reasonable way, each test file should contain a toplevel test group and focus on testing one aspect of the project.  For example, ParserTest.hs should not use exec, it should test the parser directly.
-    * Tests should be thorough, a Parser test without quickcheck should have at more than 20 tests.  Every time you fix a bug, make a test.
-    * Within reason, every mixin should have its own test group in it's own file.
-    * While it is not necessary to fully complete all features of the project, you will need to have made substantial progress in order to create reasonable tests.
+    * Tests should be thorough, a Parser test without quickcheck should have more than 20 tests.  Every time you fix a bug, make a test.
+    * Within reason, every mix-in should have its own test group in its own file.
+    * While it is not necessary to fully complete all features by Milestone 2, you will need to have made substantial progress in order to create reasonable tests.
   * Completion is worth 5pts/100.
 * Final Deadline: 5/3/19
   * Completion is worth 90pts/100.
+
+## Notes
+* In Check.hs, `deriving (Show,Eq)` should have been `deriving (Show,Eq,Ord)`
+  
 ## Getting Started
 * Come up with a language name/team name among your group
 * Follow this [Link](https://classroom.github.com/g/potVpRHi) to create/Join a group repo.  Even if you are working alone.
@@ -93,7 +97,7 @@ in increasing order, L associative except as noted, for arithmetic,relational,
     ^     Floating-Point Exponentiation             -- R associative
     **    Integer Exponential                       -- R associative
   <hr> 
-    !!    List indexing operator     -- R associative, left operand must be list, right must be integer
+    !!    List indexing operator     -- L associative, left operand must be list, right must be integer
   <hr> 
     -- prefix operators and functions
     not    Boolean not
@@ -141,7 +145,7 @@ In addition, all week 10 language features must still work:
 We recommend:
 * You can start with your implementation for the last homework and simply add these operators in their appropriate places.  
 * You should modify the `EnvUnsafe` monad code to include logging (the `Writer` monad) using a `print` expression, as we did in a previous homework (because we will be adding the print and separator from [lang2](../assignments/week7/src/lang/Lang2.hs))
-* You should provide an `eval` function to evaluate expressions in the `Ast` into a suitable result type analogous to `EnvUnsafe Env  Val` from the last homework; it should use your modified monad.
+* You should provide an `eval` function to evaluate expressions in the `Ast` into a suitable result type analogous to `Val` from the last homework; it should use your monad as specified in the previous item.
 * With project this size, good variable name and nice documentation will never be a waste of time. Write as much documentation as you can and also make your variable name as descriptive as possible.
 * Start early!
 
@@ -182,18 +186,18 @@ Usability
 Static Checking
 * 5pt Warn when a variable is introduced but never used
 * 15pt Checking simple types, where every variable has a type annotation (lecture will be presented on this)
-* 20-30pt  Advanced type checking: Bidirectional, Hindly-milner, or dependently typed [**](#difficult -- talk to Mark)
+* 20-30pt  Advanced type checking: Bidirectional, Hindly-milner, or dependently typed [**](#difficult)
 
 Mutable state
 * 10pt Dynamically scoped mutable state[*](#medium)
 * 20-30pt Lexically scoped mutable state[**](#difficult)
 
 Misc
-* 10pt Add runtime warnings to the monad, and flag appropriate conditions which are not errors, but cause concern (e.g., you defined a variable or function but then didn't use it, as in the Ok monad presented in lecture). [*](#medium)
 * 5-15 pt Overloaded operators and constants, automatic type conversion (as in Java or Python) [*](#medium)
+* 10pt Add runtime warnings to the monad (as in the Ok monad presented in lecture), and flag appropriate conditions which are not errors, but cause concern (e.g., integers go outside the range -2<sup>29</sup> to 2<sup>29</sup>-1, you defined a variable or function but then didn't use it). [*](#medium)
 
 Additionally you can get points by using engineering best practices
-* 5pt Writeing a quickcheck generator and shrinker for your Ast and using it to test your parser
+* 5pt Writing a quickcheck generator and shrinker for your Ast and using it to test your parser
 * 5pt Writing clear Haddock style comments and generating the html documentation
 * 5pt Setting up Continuous Integration on your github repo[*](#medium)
 
@@ -202,9 +206,9 @@ You can implement as many features as you want but you cannot score above a 100
 
 There are many other features, small and large, which could be imagined (orderings on lists? array types? n-ary tuples? conversion between prefix and infix? lazy evaluation? compilation[**](#difficult)?   The list goes on and on.....).  Please talk to Mark if you have creative ideas!  Some things are very challenging, and may change the language specification drasticly: these need to be aproved by Mark before the first milestone, and may require additional work by the 2nd milestone.
 
-<a name="medium">*</a> Mark needs to aprove before Before Milstone 2. Might require some work on our end, for instance We might need to give you extra permissions in your repo for you to set up Continuous Integration.
+<a name="medium">*</a> Mark needs to aprove before Before Milstone 2. These problems might require some work on our end, for instance We might need to give you extra permissions in your repo for you to set up Continuous Integration.  Mark also might have some hints he would like to give you before you start.
 
-<a name="difficult">**</a> This is challenging, Mark needs to approve before Milestone 1
+<a name="difficult">**</a> This is challenging, Mark needs to approve before ~~Milestone 1~~ ASAP.
 
 
 
