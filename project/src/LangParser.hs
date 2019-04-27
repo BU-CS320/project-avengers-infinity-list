@@ -41,7 +41,9 @@ cons' :: Parser Ast
 cons' = do x <- (token orExpr)
            token (literal ":")
            y <- (token cons)
-           return (Cons x y)
+           case y of (Cons _ _) -> return (Cons x y)
+                     _          -> return (Cons x (Cons y Nil))
+
 
 -- *LangParser> parse cons "1 : 4: true"
 -- Just (1 : 4 : true,"")
