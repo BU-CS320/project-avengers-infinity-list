@@ -77,8 +77,10 @@ multDivExpr :: Parser Ast
 multDivExpr = withInfix expExpr [("*", Mult), ("/", Div)]
 
 expExpr :: Parser Ast
-expExpr = withInfix notExp [("**", IntExp)]
+expExpr = withInfix listIndexExpr [("**", IntExp)]
 
+listIndexExpr :: Parser Ast
+listIndexExpr = withInfix notExp [("!!", ListIndex)]
 
 notExp :: Parser Ast --HAS PROBLEMS
 notExp = notExp' <|> atoms
