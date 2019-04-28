@@ -156,10 +156,6 @@ data Val = I Integer | B Bool | F Float | C Char
          | Fun (Val -> Unsafe Val) -- since this is a functional language, one thing that can be returned is a function
 
 
-{- 
-
-
--}
 
 
 
@@ -187,7 +183,10 @@ stdLib = Map.fromList
    ("float", Fun $ \ v -> case v of I integer -> Ok $ (F (realToFrac (fromIntegral integer)))
                                     _    -> Error "can only call float on an int"),
    ("int", Fun $ \ v -> case v of F fl -> Ok $ (F (fromIntegral (truncate fl)))
-                                  _    -> Error "can only call int on a float")]
+                                  _    -> Error "can only call int on a float"),
+   ("elem", Fun $ \ var -> Ok $ Fun $ \ list -> case list of
+                                             Ls ls -> Ok $ (B (elem var ls))
+                                             _     -> Error "can only call elem on a list")]
 
 -- helper function that runs with a standard library of functions: head, tail ...
 run :: Ast -> Unsafe Val
@@ -197,28 +196,29 @@ run a = runEnvUnsafe (eval a) stdLib
 type Env = Map String Val
 
 
-eqVal :: Val -> Val -> Bool
-eqVal (I x) (I y) = x == y
-eqVal (F x) (F y) = x == y
-eqVal (B x) (B y) = x == y
-eqVal (C x) (C y) = x == y
-eqVal (S x) (S y) = x == y
-eqVal (Ls []) (Ls []) = True
-eqVal (Ls (x:xs)) (Ls (y:ys)) = (eqVal x y) && (eqVal (Ls xs) (Ls ys))
-eqVal _ _ = False
+instance Eq Val where
+  (I x) == (I y) = x == y
+  (F x) == (F y) = x == y
+  (B x) == (B y) = x == y
+  (C x) == (C y) = x == y
+  (S x) == (S y) = x == y
+  (Ls []) == (Ls []) = True
+  (Ls (x:xs)) == (Ls (y:ys)) = (x == y) && ((Ls xs) == (Ls ys))
+  _ == _ = False
+
 
 
 equals :: Ast -> Ast -> EnvUnsafe Env Val
 equals x y =
   do x' <- eval x
      y' <- eval y
-     return (B (eqVal x' y'))
+     return (B (x' == y'))
 
 notEquals :: Ast -> Ast -> EnvUnsafe Env Val
 notEquals x y =
   do x' <- eval x
      y' <- eval y
-     return (B (not $ eqVal x' y'))
+     return (B (not $ x' == y'))
 
 lessThan :: Ast -> Ast -> EnvUnsafe Env Val
 lessThan x y =
