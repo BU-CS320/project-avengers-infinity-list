@@ -34,7 +34,7 @@ apps :: Parser Ast
 apps = withInfix cons [("",App)] -- the tokens eat up all the spaces so we split on the empty string
 
 cons :: Parser Ast
-cons = cons' <|> orExpr
+cons = cons'' <|> cons' <|> orExpr
 
 --right associative
 cons' :: Parser Ast
@@ -43,6 +43,15 @@ cons' = do x <- (token orExpr)
            y <- (token cons)
            case y of (Cons _ _) -> return (Cons x y)
                      _          -> return (Cons x (Cons y Nil))
+
+cons'' :: Parser Ast
+cons'' = do token $ literal "["
+            x <- (token orExpr)
+            token $ literal ","
+            y <- (token cons)
+            case y of (Cons _ _) -> return (Cons x y)
+                      _          -> return (Cons x (Cons y Nil))
+                      
 
 
 -- *LangParser> parse cons "1 : 4: true"
@@ -60,7 +69,10 @@ orExpr = withInfix andExpr [("||", Or)]
 -- Just (true,"")
 
 andExpr :: Parser Ast
-andExpr = withInfix addSubExpr [("&&", And)]
+andExpr = withInfix comparison [("&&", And)]
+
+comparison :: Parser Ast
+comparison = withInfix addSubExpr [("==", Equals), ("/=", NotEquals), ("<=", LessThanOrEquals), ("<", LessThan), (">=" , GreaterThanOrEquals), (">", GreaterThan)]
 
 -- *LangParser> parse andExpr "false"
 -- Just (false,"")
@@ -79,7 +91,7 @@ multDivExpr :: Parser Ast
 multDivExpr = withInfix expExpr [("*", Mult), ("/", Div)]
 
 expExpr :: Parser Ast
-expExpr = withInfix notExp [("**", IntExp)]
+expExpr = withInfix notExp [("**", IntOrFloatExp)]
 
 
 notExp :: Parser Ast --HAS PROBLEMS
@@ -91,7 +103,7 @@ notExp' = do token (literal "!")
              return (Not x)
 
 atoms:: Parser Ast
-atoms = ints <|> floats <|> bools  <|>  nil <|> parens <|> ifParser <|> letParser <|>  lambdaParser <|> vars
+atoms = floats <|> ints <|> chars <|> strings <|> bools  <|>  nil <|> parens <|> ifParser <|> letParser <|>  lambdaParser <|> vars
 
 -- *LangParser> parse atoms "111"
 -- Just (111,"")
@@ -112,6 +124,18 @@ floats :: Parser Ast
 floats = do s <- token $ floatParser
             return (ValFloat s)
 
+chars :: Parser Ast
+chars = do token $ literal "'"
+           s <- token $ item
+           token $ literal "'"
+           return $ (ValChar s)
+
+strings :: Parser Ast
+strings = do token $ literal "\""
+             s <- token $ varParser
+             token $ literal "\""
+             return $ (ValString s)
+
 bools :: Parser Ast
 bools = do s <- token $ varParser
            if (s == "true" || s == "false")
@@ -120,19 +144,6 @@ bools = do s <- token $ varParser
              "false" -> return (ValBool False)
              otherwise -> failParse --should not happen
            else failParse
-
-gThanOrEqual :: Parser Ast
-gThanOrEqual x = undefined
-
-greaterThan :: Parser Ast
-greaterThan x = undefined
-
-floatingDiv :: Parser Ast
-floatingDiv = undefined
-
-floatingExp :: Parser Ast
-floatingExp = undefined 
-
 
 
 nil :: Parser Ast

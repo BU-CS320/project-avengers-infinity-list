@@ -3,6 +3,8 @@ module Lang where
 import Data.Map (Map)
 import Data.Set (Set)
 import Data.List (isSubsequenceOf)
+import Data.Char
+import Data.Int
 import qualified Data.Map as Map
 import qualified Data.Set as Set --used for lambda stuff
 
@@ -23,11 +25,23 @@ withVal :: String -> Val -> EnvUnsafe Env a -> EnvUnsafe Env a
 withVal var v comp = undefined
 
 -- helper functions that take care of type issues (use a "Error" when things have the wron type
+evalNum :: Ast -> EnvUnsafe Env (Either Float Integer)
+evalNum a = do a' <- eval a
+               case a' of
+                 F f -> return (Left f)
+                 I i -> return (Right i)
+
 evalInt :: Ast -> EnvUnsafe Env Integer
 evalInt a = do a' <- eval a
                case a' of
                  I i -> return i
                  _ -> err "Not an int"
+
+evalFloat :: Ast -> EnvUnsafe Env Float
+evalFloat a = do a' <- eval a
+                 case a' of 
+                   F f -> return f
+                   _ -> err "Not a float"
 
 evalBool :: Ast -> EnvUnsafe Env Bool
 evalBool a = do a' <- eval a
@@ -92,7 +106,16 @@ data Ast = ValBool Bool
          | ValInt Integer
          | ValFloat Float
          | Plus Ast Ast | Minus Ast Ast | Mult Ast Ast | Div Ast Ast
-         | IntExp Ast Ast
+         | IntOrFloatExp Ast Ast
+
+         | ValChar Char | ValString String
+
+         | Equals Ast Ast
+         | NotEquals Ast Ast
+         | LessThan Ast Ast
+         | LessThanOrEquals Ast Ast
+         | GreaterThan Ast Ast
+         | GreaterThanOrEquals Ast Ast
 
          | Nil
          | Cons Ast Ast
@@ -118,10 +141,12 @@ data Val = I Integer | B Bool | F Float | C Char
 
 instance Show Val where
   show (I i) = show i
+  show (F f) = show f
   show (B b) = show b
+  show (C c) = show c
+  show (S s) = show s
   show (Ls ls) = show ls
   show (Fun _) = "\\ x -> ?" -- no good way to show a function
-
 
 stdLib = Map.fromList
   [("tail", Fun $ \ v -> case v of Ls (_:ls) -> Ok $ Ls ls
@@ -129,7 +154,18 @@ stdLib = Map.fromList
    ("head", Fun $ \ v -> case v of Ls (head:_) -> Ok $ head
                                    _           -> Error "can only call head on a non empty list"),
    ("len", Fun $ \ v -> case v of Ls ls -> Ok $ (I (fromIntegral (length ls)))
-                                  _     -> Error "")]
+                                  _     -> Error "can only call length on a list"),
+   ("ord", Fun $ \ v -> case v of C ch -> Ok $ (I (fromIntegral (ord ch)))
+                                  _    -> Error "can only call ord on a char"),
+   ("chr", Fun $ \ v -> case v of I integer -> Ok $ (C (chr (fromIntegral integer)))
+                                  _    -> Error "can only call chr on a char"),
+   ("float", Fun $ \ v -> case v of I integer -> Ok $ (F (realToFrac (fromIntegral integer)))
+                                    _    -> Error "can only call float on an int"),
+   ("int", Fun $ \ v -> case v of F fl -> Ok $ (F (fromIntegral (truncate fl)))
+                                  _    -> Error "can only call int on a float"),
+   ("elem", Fun $ \ var -> Ok $ Fun $ \ list -> case list of
+                                             Ls ls -> Ok $ (B (elem var ls))
+                                             _     -> Error "can only call elem on a list")]
 
 -- helper function that runs with a standard library of functions: head, tail ...
 run :: Ast -> Unsafe Val
@@ -180,13 +216,97 @@ pascalRow k = drop k ([(choose n k) | n <- [0..]]) where
 
 -}
 
+
+instance Eq Val where
+  (I x) == (I y) = x == y
+  (F x) == (F y) = x == y
+  (B x) == (B y) = x == y
+  (C x) == (C y) = x == y
+  (S x) == (S y) = x == y
+  (Ls []) == (Ls []) = True
+  (Ls (x:xs)) == (Ls (y:ys)) = (x == y) && ((Ls xs) == (Ls ys))
+  _ == _ = False
+
+
+
+equals :: Ast -> Ast -> EnvUnsafe Env Val
+equals x y =
+  do x' <- eval x
+     y' <- eval y
+     return (B (x' == y'))
+
+notEquals :: Ast -> Ast -> EnvUnsafe Env Val
+notEquals x y =
+  do x' <- eval x
+     y' <- eval y
+     return (B (not $ x' == y'))
+
+lessThan :: Ast -> Ast -> EnvUnsafe Env Val
+lessThan x y =
+  do x' <- eval x
+     y' <- eval y
+     case (x', y') of
+       (I x'', I y'') -> return (B (x'' < y''))
+       (F x'', F y'') -> return (B (x'' < y''))
+       (B x'', B y'') -> return (B (x'' < y''))
+       (C x'', C y'') -> return (B (x'' < y''))
+       (S x'', S y'') -> return (B (x'' < y''))
+       _              -> return (B False)
+
+--maybe wrong because it will return true on equal lists?
+lessThanOrEquals :: Ast -> Ast -> EnvUnsafe Env Val
+lessThanOrEquals x y =
+  do x' <- eval x
+     y' <- eval y
+     case (x', y') of
+       (I x'', I y'') -> return (B (x'' <= y''))
+       (F x'', F y'') -> return (B (x'' <= y''))
+       (B x'', B y'') -> return (B (x'' <= y''))
+       (C x'', C y'') -> return (B (x'' <= y''))
+       (S x'', S y'') -> return (B (x'' <= y''))
+       _              -> return (B False)
+
+greaterThan :: Ast -> Ast -> EnvUnsafe Env Val
+greaterThan x y = 
+  do x' <- eval x
+     y' <- eval y
+     case (x', y') of
+       (I x'', I y'') -> return (B (x'' > y''))
+       (F x'', F y'') -> return (B (x'' > y''))
+       (B x'', B y'') -> return (B (x'' > y''))
+       (C x'', C y'') -> return (B (x'' > y''))
+       (S x'', S y'') -> return (B (x'' > y''))
+       _              -> return (B False)
+
+greaterThanOrEquals :: Ast -> Ast -> EnvUnsafe Env Val
+greaterThanOrEquals x y = 
+  do x' <- eval x
+     y' <- eval y
+     case (x', y') of
+       (I x'', I y'') -> return (B (x'' >= y''))
+       (F x'', F y'') -> return (B (x'' >= y''))
+       (B x'', B y'') -> return (B (x'' >= y''))
+       (C x'', C y'') -> return (B (x'' >= y''))
+       (S x'', S y'') -> return (B (x'' >= y''))
+       _              -> return (B False)
+       
+
 type Env = Map String Val
 
 
 eval :: Ast -> EnvUnsafe Env Val
 eval (ValBool bool) = return (B bool)
 eval (ValInt int) = return (I int)
+eval (ValFloat float) = return (F float)
+eval (ValChar char) = return (C char)
+eval (ValString str) = return (S str)
 eval (Var str) = valOf str
+eval (Equals x y) = equals x y
+eval (NotEquals x y) = notEquals x y
+eval (LessThan x y) = lessThan x y
+eval (LessThanOrEquals x y) = lessThanOrEquals x y
+eval (GreaterThan x y) = greaterThan x y
+eval (GreaterThanOrEquals x y) = greaterThanOrEquals x y
 eval (And x y) =
   do x' <- evalBool x
      y' <- evalBool y
@@ -198,10 +318,6 @@ eval (Or x y) =
 eval (Not x) =
   do x' <- evalBool x
      return (B (not x'))
-eval (IntExp b e) =
-  do b' <- evalInt b
-     e' <- evalInt e
-     return (I (b' ^ e'))
 eval (Plus x y) =
   do x' <- evalInt x
      y' <- evalInt y
@@ -220,13 +336,21 @@ eval (Div x y) = --not changing this one because div by 0
      case (x') of
        I xInt -> case (y') of
          I 0 -> err "Divide by 0 error"
-         I yInt -> return (I (xInt + yInt))
+         I yInt -> return (I (xInt `div` yInt))
+         _ -> err "Invalid types"
+       F xFloat -> case (y') of
+         F 0.0 -> err "Divide by 0 error"
+         F yFloat -> return (F (xFloat/yFloat))
          _ -> err "Invalid types"
        _ -> err "Invalid types"
-eval (IntExp b e) =
-  do b' <- evalInt b
-     e' <- evalInt e
-     return (I (b' ^ e'))
+eval (IntOrFloatExp b e) =
+  do b' <- evalNum b
+     e' <- evalNum e
+     case (b',e') of 
+       (Left f1, Left f2) -> return (F (f1 ** f2))
+       (Right i1, Right i2) -> return (I (i1 ^ i2))
+       (Right _, Left _) -> err "Type Mismatch: Cannot exponentiate integer to a float"
+       (Left _, Right _) -> err "Type Mismatch: Cannot exponentiate float to an integer"
 eval (Nil) = return (Ls [])
 eval (Cons x y) =
   do x' <- eval x
@@ -282,7 +406,7 @@ showFullyParen (Plus l r) = "(" ++ (showFullyParen l) ++ " + " ++ (showFullyPare
 showFullyParen (Minus l r) = "(" ++ (showFullyParen l) ++ " - " ++ (showFullyParen r) ++ ")"
 showFullyParen (Mult l r) = "(" ++ (showFullyParen l) ++ " * " ++ (showFullyParen r) ++ ")"
 showFullyParen (Div l r) = "(" ++ (showFullyParen l) ++ " / " ++ (showFullyParen r) ++ ")"
-showFullyParen (IntExp b e) = "(" ++ (showFullyParen b) ++ " ** " ++ (showFullyParen e) ++ ")"
+showFullyParen (IntOrFloatExp b e) = "(" ++ (showFullyParen b) ++ " ** " ++ (showFullyParen e) ++ ")"
 showFullyParen (If b t e) = "(if " ++ (showFullyParen b) ++ " then " ++ (showFullyParen t) ++ " else " ++ (showFullyParen e) ++ ")"
 showFullyParen (Let v a bod) = "(let " ++ v ++ " = " ++ (showFullyParen a) ++ " in " ++ (showFullyParen bod) ++ ")"
 showFullyParen (Lam v bod) = "(\\ " ++ v ++ " -> " ++ (showFullyParen bod) ++ ")"
@@ -319,7 +443,7 @@ showPretty (Minus l r) i = parenthesize 10 i $ (showPretty l 10) ++ " - " ++ (sh
 showPretty (Plus l r) i = parenthesize 10 i $ (showPretty l 10) ++ " + " ++ (showPretty r 11)
 showPretty (Mult l r) i = parenthesize 12 i $ (showPretty l 12) ++ " * " ++ (showPretty r 13)
 showPretty (Div l r) i = parenthesize 12 i $ (showPretty l 12) ++ " / " ++ (showPretty r 13)
-showPretty (IntExp b e) i = parenthesize 13 i $ (showPretty b 13) ++ " ** " ++ (showPretty e 14)
+showPretty (IntOrFloatExp b e) i = parenthesize 13 i $ (showPretty b 13) ++ " ** " ++ (showPretty e 14)
 showPretty (ListIndex lst idx) i = parenthesize 14 i $ (showPretty lst 14) ++ " !! " ++ (showPretty idx 14)
 
 showPretty (Not l ) i = parenthesize 14 i $  " ! " ++ (showPretty l 14)
