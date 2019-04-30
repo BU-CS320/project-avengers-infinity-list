@@ -171,10 +171,6 @@ parens = do token $ literal "("
             token $ literal ")"
             return ast
 
-comment :: Parser Ast
-comment = do token $ literal "{-"
-             token $ literal "-}"
-             return $ Comment
 
 
 -- *LangParser> parse parser "(true)"
