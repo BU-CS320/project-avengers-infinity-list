@@ -9,11 +9,11 @@ import Data.Char
 data Parser a = Parser (String -> Maybe (a, String))
 
 -- | invoke a parser
--- 	
--- >>> parese (literal "test") "test1" 	
--- Just ("test", "1")	
--- 	
--- >>> parese (literal "test") "hello" 	
+--
+-- >>> parese (literal "test") "test1"
+-- Just ("test", "1")
+--
+-- >>> parese (literal "test") "hello"
 -- Nothing
 parse :: Parser a -> (String -> Maybe (a, String))
 parse (Parser f) = f
@@ -73,11 +73,11 @@ failParse = Parser $ \ input -> Nothing
 
 
 -- | read in a char if it satisfy some property (from book)
--- 
+--
 -- >>> parse (sat isDigit) "456"
 -- Just ("4", "56")
 --
--- >>> parse (sat isDigit) "any string" 
+-- >>> parse (sat isDigit) "any string"
 -- Nothing
 sat :: (Char -> Bool) -> Parser Char
 sat p = do c <- item
@@ -87,11 +87,11 @@ sat p = do c <- item
 
 
 -- | parse exactly a string, return that string (in book as the poorly named "string")
--- 
--- >>> parese (literal "test") "test1" 
+--
+-- >>> parese (literal "test") "test1"
 -- Just ("test", "1")
--- 
--- >>> parese (literal "test") "hello" 
+--
+-- >>> parese (literal "test") "hello"
 -- Nothing
 literal :: String  -- ^ the string to match
           -> Parser String  -- ^ the parser that match exactly the input string
@@ -170,19 +170,23 @@ floatParser = do sgn <- (literal "-") <||> (rep digit)
 --parse spaces, throw them away
 spaces :: Parser ()
 spaces =  do rep (sat isSpace)
+             rep ((literal "{-") +++ (rep (sat (notSymbol))) +++ (literal "-}"))
+             rep ((literal "--") +++ (rep (sat (/= '\n'))) +++ (literal "\n"))
              return ()
 
+notSymbol  :: Char -> Bool
+notSymbol c = (isSpace c) || (isAlpha c)
+
 -- a nicer version of eat spaces, eat the spaces before or after the parser (from book)
-token:: Parser a -> Parser a
+token :: Parser a -> Parser a
 token pa = do spaces
               a <- pa
               spaces
               return a
 
-
 -- parse what we will consider a good variable name
 varParser :: Parser String
-varParser = 
+varParser =
   do head <- sat isAlpha
      tail <- rep (sat isAlpha <|> digit <|>  sat (=='\''))
      return $ head : tail
@@ -209,3 +213,24 @@ withInfix pa ls = let operators = fmap fst ls
                    in do l <- pa
                          (innerParser l) <|> (return l)
 
+--withInfix' :: Parser a -> [(String, a -> a -> a)] -> Parser a
+--withInfix' pa ls = let operators = fmap fst ls
+--                      opParsers = fmap (\ s -> token $ literal s) operators
+
+--                      --innerParser :: a -> Parser a, where a is the same as above
+--                      innerParser left = do s <- oneOf opParsers
+--                                            case s of
+--                                              "--" -> do rep (sat (/= '\n'))
+--                                                         next <- pa
+--
+--                                            next <- pa
+--                                            case lookup s ls of
+--                                              Nothing -> failParse
+--                                              Just f ->  case f of
+--                                                           Comment ->
+--                                                             do rep (sat (/= '\n'))
+
+--                                                let out = f left next
+--                                                         in (innerParser out) <|> return out
+--                   in do l <- pa
+--                         (innerParser l) <|> (return l)

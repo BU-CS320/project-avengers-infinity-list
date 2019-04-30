@@ -30,6 +30,7 @@ evalNum a = do a' <- eval a
                case a' of
                  F f -> return (Left f)
                  I i -> return (Right i)
+                 _   -> err "Not a number"
 
 evalInt :: Ast -> EnvUnsafe Env Integer
 evalInt a = do a' <- eval a
@@ -39,7 +40,7 @@ evalInt a = do a' <- eval a
 
 evalFloat :: Ast -> EnvUnsafe Env Float
 evalFloat a = do a' <- eval a
-                 case a' of 
+                 case a' of
                    F f -> return f
                    _ -> err "Not a float"
 
@@ -67,7 +68,6 @@ local changeEnv comp  = EnvUnsafe (\e -> runEnvUnsafe comp (changeEnv e) )
 
 
 -- ...
-
 -- ungraded bonus challenge: use a helper type class to do this functionality
 
 
@@ -116,6 +116,8 @@ data Ast = ValBool Bool
          | LessThanOrEquals Ast Ast
          | GreaterThan Ast Ast
          | GreaterThanOrEquals Ast Ast
+         | IntExp Ast Ast
+         | NegExp Ast
 
          | Nil
          | Cons Ast Ast
@@ -171,50 +173,6 @@ stdLib = Map.fromList
 run :: Ast -> Unsafe Val
 run a = runEnvUnsafe (eval a) stdLib
 
-{-
---DELETE ME LATER--ANALYTIC HW
-interleave :: [a] -> [a] -> [a]
-interleave (head1:body1) (head2:body2) = ([head1] ++ [head2] ++ (interleave body1 body2))
-
-iter :: (a -> a) -> a -> [a]
-iter func head = [head] ++ (iter func (func head))
-
-linCong :: Integer -> Integer -> Integer -> Integer -> Integer
-linCong a b c x = (a*x+b) `mod` c
-
-rands :: Integer -> Integer -> Integer -> Integer -> [Integer]
-rands seed a b c = [seed] ++ (rands (linCong a b c seed) a b c)
-
-factors :: Integer -> [Integer]
-factors x = filter (\y -> x `mod` y == 0) [1..x]
-
-hamming :: [Integer] --here's a terrible way to do it
-hamming = filter (\x -> isSubsequenceOf [2,3,5] (factors x)) [1..]
-
---BROKEN BROKEN BROKEN BROKEN BROKEN BROKEN BROKEN BROKEN
-allPairs :: [(Integer, Integer)]
-allPairs = [(0,0)] ++ (map getNext allPairs) where
-  getNext (x, y) = if (y > 0) then (x+1, y-1) else (0, x+1)
-
-
-expand :: [Integer] -> [Integer]
-expand (val:next) = (toList val val) ++ (expand next) where
-  toList val 0 = []
-  toList val counter = [val] ++ (toList val (counter-1))
-
-pascalRow :: Int -> [Int]
-pascalRow k = drop k ([(choose n k) | n <- [0..]]) where
-  choose n 0 = 1
-  choose 0 k = 0
-  choose n k = choose (n-1) (k-1) * n `div` k 
---flatten :: [(a, a)] -> [a]
---flatten [] = []
---flatten ((left, right):body) = [left] ++ [right] ++ (flatten body)
-
---interleave :: [a] -> [a] -> [a]
---interleave l1 l2 = flatten [(x, y) | x <- l1, y <- l2]
-
--}
 
 
 instance Eq Val where
@@ -293,13 +251,12 @@ greaterThanOrEquals x y =
 
 type Env = Map String Val
 
-
 eval :: Ast -> EnvUnsafe Env Val
 eval (ValBool bool) = return (B bool)
 eval (ValInt int) = return (I int)
-eval (ValFloat float) = return (F float)
 eval (ValChar char) = return (C char)
 eval (ValString str) = return (S str)
+eval (ValFloat flo) = return (F flo)
 eval (Var str) = valOf str
 eval (Equals x y) = equals x y
 eval (NotEquals x y) = notEquals x y
@@ -315,21 +272,38 @@ eval (Or x y) =
   do x' <- evalBool x
      y' <- evalBool y
      return (B (x' || y'))
+eval (NegExp x) =
+  do x' <- evalNum x
+     case x' of
+       Left f -> return (F (0 - f))
+       Right i -> return (I (0 - i))
 eval (Not x) =
   do x' <- evalBool x
      return (B (not x'))
 eval (Plus x y) =
-  do x' <- evalInt x
-     y' <- evalInt y
-     return (I (x' + y'))
+  do x' <- evalNum x
+     y' <- evalNum y
+     case (x', y') of
+       (Left f1, Left f2)   -> return (F (f1 + f2))
+       (Right i1, Right i2) -> return (I (i1 + i2))
+       (Right _, Left _)    -> err "TypeMismatch: Cannot add integer and float"
+       (Left _, Right _)    -> err "TypeMismatch: Cannot add float and integer"
 eval (Minus x y) =
-  do x' <- evalInt x
-     y' <- evalInt y
-     return (I (x' - y'))
+  do x' <- evalNum x
+     y' <- evalNum y
+     case (x', y') of
+       (Left f1, Left f2)   -> return (F (f1 - f2))
+       (Right i1, Right i2) -> return (I (i1 - i2))
+       (Right _, Left _)    -> err "TypeMismatch: Cannot subtract integer and float"
+       (Left _, Right _)    -> err "TypeMismatch: Cannot subtract float and integer"
 eval (Mult x y) =
-  do x' <- evalInt x
-     y' <- evalInt y
-     return (I (x' * y'))
+  do x' <- evalNum x
+     y' <- evalNum y
+     case (x', y') of
+       (Left f1, Left f2)   -> return (F (f1 * f2))
+       (Right i1, Right i2) -> return (I (i1 * i2))
+       (Right _, Left _)    -> err "TypeMismatch: Cannot multiply integer and float"
+       (Left _, Right _)    -> err "TypeMismatch: Cannot multiply float and integer"
 eval (Div x y) = --not changing this one because div by 0
   do x' <- eval x
      y' <- eval y
@@ -383,24 +357,26 @@ eval (Lam x bod) =
   do env <- getEnv
      return (Fun (\v -> runEnvUnsafe (eval bod) (Map.insert x v env)))
 
-
 testlam1 = Lam "x" (Plus (Var "x") (ValInt 4))
 testlam2 = App testlam1 (ValInt 3)
 
 
 validListIndex :: [Val] -> Integer -> Either String Val
 validListIndex lst idx
-  | (fromIntegral idx) >= (length lst) = Left $ "Index too large. Index given: " ++ (show idx) ++ " but maximum is: " ++ (show ((length lst) - 1))
+  | (fromIntegral idx) >= (length lst) =
+    Left $ "Index too large. Index given: " ++ (show idx) ++ " but maximum is: " ++ (show ((length lst) - 1))
   | otherwise          = Right (lst !! (fromIntegral idx))
 
 
 -- This is helpful for testing and debugging
 showFullyParen :: Ast -> String
 showFullyParen (ValInt i) = "(" ++ show i ++ ")"
+showFullyParen (ValFloat f) = "(" ++ show f ++ ")"
 showFullyParen (ValBool True) = "(" ++ "true" ++ ")"
 showFullyParen (ValBool False) = "(" ++ "false" ++ ")"
 showFullyParen (And l r) = "(" ++ (showFullyParen l) ++ " && " ++ (showFullyParen r) ++ ")"
 showFullyParen (Or l r) = "(" ++ (showFullyParen l) ++ " || " ++ (showFullyParen r) ++ ")"
+showFullyParen (NegExp x) = "(-" ++ (showFullyParen x) ++ ")"
 showFullyParen (Not a) = "(" ++ " ! " ++ (showFullyParen a) ++ ")"
 showFullyParen (Plus l r) = "(" ++ (showFullyParen l) ++ " + " ++ (showFullyParen r) ++ ")"
 showFullyParen (Minus l r) = "(" ++ (showFullyParen l) ++ " - " ++ (showFullyParen r) ++ ")"
@@ -426,6 +402,9 @@ showPretty :: Ast -> Integer -> String
 showPretty (ValInt i) _ =  if i < 0
                            then  "(" ++ show i ++ ")"
                            else show i
+showPretty (ValFloat f) _ =  if f < 0
+                             then  "(" ++ show f ++ ")"
+                             else show f
 showPretty (ValBool True) _ =  "true"
 showPretty (ValBool False)  _  = "false"
 showPretty Nil _ = "[]"
@@ -445,7 +424,7 @@ showPretty (Mult l r) i = parenthesize 12 i $ (showPretty l 12) ++ " * " ++ (sho
 showPretty (Div l r) i = parenthesize 12 i $ (showPretty l 12) ++ " / " ++ (showPretty r 13)
 showPretty (IntOrFloatExp b e) i = parenthesize 13 i $ (showPretty b 13) ++ " ** " ++ (showPretty e 14)
 showPretty (ListIndex lst idx) i = parenthesize 14 i $ (showPretty lst 14) ++ " !! " ++ (showPretty idx 14)
-
+showPretty (NegExp x) i = parenthesize 14 i $ " - " ++ (showPretty x 14)
 showPretty (Not l ) i = parenthesize 14 i $  " ! " ++ (showPretty l 14)
 
 
