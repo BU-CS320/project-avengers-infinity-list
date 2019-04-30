@@ -21,18 +21,16 @@ data WarningMsg =
   -- ...
   deriving (Show,Eq)
 
-type Env = Map String Val
-
 instance Ord WarningMsg where
-  (<=) s1 s2 = s1 <= s2
+  (<=) (UndefinedVarUse s1) (UndefinedVarUse s2) = s1 <= s2
 
 inScopeVar :: String -> Set String -> Bool
 inScopeVar var scope = Set.member var scope
 
 -- | perform static checking on the Ast
 -- the output a set of warning on that input Ast
-check :: Ast -> [WarningMsg]
-check ast = Set.toList (check' ast Set.empty Set.empty)
+check :: Ast -> Set WarningMsg
+check ast = check' ast Set.empty Set.empty
 
 check' :: Ast -> Set String -> Set WarningMsg -> Set WarningMsg
 check' (ValInt _) _ warnings = warnings
@@ -41,7 +39,7 @@ check' (ValFloat _) _ warnings = warnings
 check' (Var v) scope warnings =
   if (inScopeVar v scope)
      then warnings
-     else (Set.singleton (UndefinedVarUse (v ++ " is not in scope"))) `Set.union` warnings
+     else Set.insert (UndefinedVarUse (v ++ " is not in scope")) warnings
 check' (Lam boundVar bod) scope warnings =
   check' bod (Set.insert boundVar scope) warnings
 check' (Let var val bod) scope warnings =
@@ -74,3 +72,5 @@ check' (ListIndex lst idx) scope warnings =
   (check' lst scope warnings) `Set.union` (check' idx scope warnings)
 check' (App x y) scope warnings =
   (check' x scope warnings) `Set.union` (check' y scope warnings)
+
+
