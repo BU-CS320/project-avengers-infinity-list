@@ -44,7 +44,7 @@ seps' = do x <- (token cons)
            return (Separator x y)
 
 cons :: Parser Ast
-cons = cons' <|> orExpr
+cons = cons'' <|> cons' <|> orExpr
 
 --right associative
 cons' :: Parser Ast
@@ -54,6 +54,16 @@ cons' = do x <- (token orExpr)
            case y of (Cons _ _) -> return (Cons x y)
                      Nil        -> return (Cons x y)
                      _          -> return (Cons x (Cons y Nil))
+
+cons'' :: Parser Ast
+cons'' = do token $ literal "["
+            x <- (token orExpr)
+            token $ literal ","
+            y <- (token cons)
+            case y of (Cons _ _) -> return (Cons x y)
+                      _          -> return (Cons x (Cons y Nil))
+                      
+
 
 -- *LangParser> parse cons "1 : 4: true"
 -- Just (1 : 4 : true,"")
@@ -72,9 +82,9 @@ orExpr = withInfix andExpr [("||", Or)]
 andExpr :: Parser Ast
 andExpr = withInfix comparison [("&&", And)]
 
-
 comparison :: Parser Ast
-comparison = withInfix addSubExpr [("==", Equals), ("/=", NotEquals), ("<=", LessThanOrEquals), ("<", LessThan)]
+comparison = withInfix addSubExpr [("==", Equals), ("/=", NotEquals), ("<=", LessThanOrEquals), ("<", LessThan), (">=" , GreaterThanOrEquals), (">", GreaterThan)]
+
 
 addSubExpr :: Parser Ast
 addSubExpr = withInfix multDivExpr [("+", Plus),("-", Minus)]
@@ -90,7 +100,7 @@ multDivExpr :: Parser Ast
 multDivExpr = withInfix expExpr [("*", Mult), ("/", Div)]
 
 expExpr :: Parser Ast
-expExpr = withInfix listIndexExpr [("**", IntExp)]
+expExpr = withInfix notExp [("**", IntOrFloatExp)]
 
 listIndexExpr :: Parser Ast
 listIndexExpr = withInfix prefixExpr [("!!", ListIndex)]
@@ -104,13 +114,12 @@ negExp = do token (literal "-")
             return (NegExp x)
 
 atoms:: Parser Ast
-atoms = ints <|> bools <|> nil <|> parens <|> ifParser <|> letParser <|> lambdaParser <|> vars
+atoms = floats <|> ints <|> chars <|> strings <|> bools  <|>  nil <|> parens <|> ifParser <|> letParser <|>  lambdaParser <|> vars
 
 notExp :: Parser Ast
 notExp = do token (literal "!")
             x <- (token prefixExpr)
             return (Not x)
-
 
 vars :: Parser Ast
 vars = do s <- token $ varParser
@@ -122,6 +131,22 @@ ints :: Parser Ast
 ints = do s <- token $ intParser
           return (ValInt s)
 
+floats :: Parser Ast
+floats = do s <- token $ floatParser
+            return (ValFloat s)
+
+chars :: Parser Ast
+chars = do token $ literal "'"
+           s <- token $ item
+           token $ literal "'"
+           return $ (ValChar s)
+
+strings :: Parser Ast
+strings = do token $ literal "\""
+             s <- token $ varParser
+             token $ literal "\""
+             return $ (ValString s)
+
 bools :: Parser Ast
 bools = do s <- token $ varParser
            if (s == "true" || s == "false")
@@ -130,6 +155,7 @@ bools = do s <- token $ varParser
              "false" -> return (ValBool False)
              otherwise -> failParse --should not happen
            else failParse
+
 
 nil :: Parser Ast
 nil = do token $ literal "[]"
