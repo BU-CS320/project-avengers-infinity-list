@@ -269,7 +269,7 @@ lessThanOrEquals x y =
        (C x'', C y'') -> return (B (x'' <= y''))
        (S x'', S y'') -> return (B (x'' <= y''))
        _              -> return (B False)
-     
+
 eval :: Ast -> EnvUnsafe Env Val
 eval (ValBool bool) = return (B bool)
 eval (ValInt int) = return (I int)
