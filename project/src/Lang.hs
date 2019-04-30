@@ -44,6 +44,12 @@ evalFloat a = do a' <- eval a
                    F f -> return f
                    _ -> err "Not a float"
 
+evalChar :: Ast -> EnvUnsafe Env Char
+evalChar a = do a' <- eval a
+                case a' of
+                  C c -> return c
+                  _ -> err "Not an int"
+
 evalBool :: Ast -> EnvUnsafe Env Bool
 evalBool a = do a' <- eval a
                 case a' of
@@ -98,12 +104,27 @@ example4 = let x = Var "x"; y = Var "y"
            in (Cons $ Lam "x" (Lam "y" ( x `Plus` y))) $  (Cons ( Lam "x" (Lam "y" ( x `Minus` y))) $ Nil)
 example4' = run example4
 
+example5 = (Equals (ValFloat 5.0) (ValInt 5))
+example5' = run example5
+
+example6 = (Equals (ValFloat 6.0) (ValFloat 6.0))
+example6' = run example6
+
+example7 = Cons (ValInt 4) (Cons (ValBool True) (Cons (ValChar 'c') (Cons (ValString "meep") Nil)))
+example7' = run example7
+
+example8 = Equals (example7) (example6)
+example8' = run example8
+
+example9 = Separator (example7) (example8)
+example9' = run example9
+
 -- Here is the abstract syntax tree for our language
 
 data Ast = ValBool Bool
          | And Ast Ast | Or Ast Ast | Not Ast
 
-         | ValInt Integer
+         | ValInt Integer 
          | ValFloat Float
          | Plus Ast Ast | Minus Ast Ast | Mult Ast Ast | Div Ast Ast
          | IntOrFloatExp Ast Ast
@@ -119,6 +140,13 @@ data Ast = ValBool Bool
          | IntExp Ast Ast
          | NegExp Ast
 
+         | ValChar Char | ValString String
+
+         | Equals Ast Ast
+         | NotEquals Ast Ast
+         | LessThan Ast Ast
+         | LessThanOrEquals Ast Ast
+
          | Nil
          | Cons Ast Ast
          | ListIndex Ast Ast
@@ -129,6 +157,8 @@ data Ast = ValBool Bool
          | Var String
          | Lam String Ast
          | App Ast Ast
+
+         | Separator Ast Ast
          deriving (Eq,Show) -- helpful to use this during testing
          --deriving Eq
 
@@ -140,6 +170,10 @@ data Ast = ValBool Bool
 data Val = I Integer | B Bool | F Float | C Char
          | Ls [Val] | S [Char]
          | Fun (Val -> Unsafe Val) -- since this is a functional language, one thing that can be returned is a function
+         | Err String
+
+
+
 
 instance Show Val where
   show (I i) = show i
@@ -167,7 +201,25 @@ stdLib = Map.fromList
                                   _    -> Error "can only call int on a float"),
    ("elem", Fun $ \ var -> Ok $ Fun $ \ list -> case list of
                                              Ls ls -> Ok $ (B (elem var ls))
-                                             _     -> Error "can only call elem on a list")]
+                                             _     -> Error "can only call elem on a list"),
+   ("filter", Fun $ \ func -> Ok $ Fun $ \ list -> case list of
+                                             Ls ls -> case func of
+                                               Fun fn -> Ok $ (Ls (filterHelper fn ls))
+                                               _ -> Error "first argument of filter must be a function"
+                                             _     -> Error "can only call filter on a list"),
+   ("map", Fun $ \ func -> Ok $ Fun $ \ list -> case list of
+                                             Ls ls -> case func of
+                                               Fun fn -> (Ok $ Ls (map (\(Ok a) -> a) (map fn ls))) 
+                                               _ -> Error "first argument of map must be a function"
+                                             _     -> Error "can only call map on a list")]
+
+--version of filter that works with functions that return Unsafe Val
+filterHelper :: (a -> Unsafe Val) -> [a] -> [a]
+filterHelper _ [] = []
+filterHelper func (head:body) = case (func head) of
+  Ok (B True) -> [head] ++ (filterHelper func body)
+  Ok (B False) -> (filterHelper func body)
+  _ -> (head:body)
 
 -- helper function that runs with a standard library of functions: head, tail ...
 run :: Ast -> Unsafe Val
@@ -251,6 +303,56 @@ greaterThanOrEquals x y =
 
 type Env = Map String Val
 
+
+instance Eq Val where
+  (I x) == (I y) = x == y
+  (F x) == (F y) = x == y
+  (B x) == (B y) = x == y
+  (C x) == (C y) = x == y
+  (S x) == (S y) = x == y
+  (Ls []) == (Ls []) = True
+  (Ls (x:xs)) == (Ls (y:ys)) = (x == y) && ((Ls xs) == (Ls ys))
+  _ == _ = False
+
+
+
+equals :: Ast -> Ast -> EnvUnsafe Env Val
+equals x y =
+  do x' <- eval x
+     y' <- eval y
+     return (B (x' == y'))
+
+notEquals :: Ast -> Ast -> EnvUnsafe Env Val
+notEquals x y =
+  do x' <- eval x
+     y' <- eval y
+     return (B (not $ x' == y'))
+
+lessThan :: Ast -> Ast -> EnvUnsafe Env Val
+lessThan x y =
+  do x' <- eval x
+     y' <- eval y
+     case (x', y') of
+       (I x'', I y'') -> return (B (x'' < y''))
+       (F x'', F y'') -> return (B (x'' < y''))
+       (B x'', B y'') -> return (B (x'' < y''))
+       (C x'', C y'') -> return (B (x'' < y''))
+       (S x'', S y'') -> return (B (x'' < y''))
+       _              -> return (B False)
+
+--maybe wrong because it will return true on equal lists?
+lessThanOrEquals :: Ast -> Ast -> EnvUnsafe Env Val
+lessThanOrEquals x y =
+  do x' <- eval x
+     y' <- eval y
+     case (x', y') of
+       (I x'', I y'') -> return (B (x'' <= y''))
+       (F x'', F y'') -> return (B (x'' <= y''))
+       (B x'', B y'') -> return (B (x'' <= y''))
+       (C x'', C y'') -> return (B (x'' <= y''))
+       (S x'', S y'') -> return (B (x'' <= y''))
+       _              -> return (B False)
+     
 eval :: Ast -> EnvUnsafe Env Val
 eval (ValBool bool) = return (B bool)
 eval (ValInt int) = return (I int)
@@ -344,6 +446,10 @@ eval (If condition ifTrue ifFalse) =
        B True -> eval ifTrue
        B False -> eval ifFalse
        _ -> err "Condition must evaluate to a boolean"
+eval (Separator ast1 ast2) =
+  do ast1' <- eval ast1
+     ast2' <- eval ast2
+     return ast2'
 eval (Let var val bod) =
   do val' <- eval val
      local (Map.insert var val') (eval bod)
