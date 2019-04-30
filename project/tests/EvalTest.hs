@@ -42,7 +42,7 @@ eqFun _ _ = False
 
 tests = testGroup "EvalTest" 
   [
-  testCase "Basic Ints/Bools/Floats/Chars/Strings/Vars: " $
+  testCase "Basic Ints/Bools/Floats/Chars/Strings : " $
     do 
       assertEqual "Bool True "   (Ok $ B True) (run (ValBool True))
       assertEqual "Bool False "  (Ok $ B True) (run (ValBool True))
@@ -50,12 +50,21 @@ tests = testGroup "EvalTest"
       assertEqual "Ints "        (Ok $ I (-10)) (run (ValInt (-10)))
       assertEqual "Ints "        (Ok $ I 0)    (run (ValInt (0)))
       assertEqual "Floats "      (Ok $ F 1.1)  (run (ValFloat 1.1))
-      assertEqual "Floats "      (Ok $ F (-3.14159)) (run (ValFloat (-3.14159))),
+      assertEqual "Floats "      (Ok $ F (-3.14159)) (run (ValFloat (-3.14159)))
+      assertEqual "Chars "       (Ok $ C 'a')  (run (ValChar 'a'))
+      assertEqual "Chars "       (Ok $ C 'z')  (run (ValChar 'z'))
+      assertEqual "Strings "     (Ok $ S "asdf")  (run (ValString "asdf"))
+      assertEqual "Strings "     (Ok $ S "fe.d")  (run (ValString "fe.d")),
   testCase "Basic Arithmetic: " $
     do
       assertEqual "2 + 4 =? "    (Ok $ I 6)    (run (Plus (ValInt 2) (ValInt 4)))
       assertEqual "2 - 4 =? "    (Ok $ I (-2)) (run (Minus (ValInt 2) (ValInt 4)))
       assertEqual "3 * 2 =? "    (Ok $ I 6)    (run (Mult (ValInt 3) (ValInt 2)))
+      assertEqual "3 / 2 =? "    (Ok $ I 1)    (run (Div (ValInt 3) (ValInt 2)))
+      assertEqual "2 ** 4 =? "   (Ok $ I 16)   (run (IntOrFloatExp (ValInt 2) (ValInt 4)))
+--  testCase "If Statements: " $
+--    do
+      
       
   ]
 
