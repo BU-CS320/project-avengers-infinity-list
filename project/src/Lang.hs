@@ -127,6 +127,16 @@ data Ast = ValBool Bool
          | ValInt Integer 
          | ValFloat Float
          | Plus Ast Ast | Minus Ast Ast | Mult Ast Ast | Div Ast Ast
+         | IntOrFloatExp Ast Ast
+
+         | ValChar Char | ValString String
+
+         | Equals Ast Ast
+         | NotEquals Ast Ast
+         | LessThan Ast Ast
+         | LessThanOrEquals Ast Ast
+         | GreaterThan Ast Ast
+         | GreaterThanOrEquals Ast Ast
          | IntExp Ast Ast
          | NegExp Ast
 
@@ -174,7 +184,6 @@ instance Show Val where
   show (Ls ls) = show ls
   show (Fun _) = "\\ x -> ?" -- no good way to show a function
 
-
 stdLib = Map.fromList
   [("tail", Fun $ \ v -> case v of Ls (_:ls) -> Ok $ Ls ls
                                    _         -> Error "can only call tail on a non empty list"),
@@ -212,11 +221,85 @@ filterHelper func (head:body) = case (func head) of
   Ok (B False) -> (filterHelper func body)
   _ -> (head:body)
 
-
-
 -- helper function that runs with a standard library of functions: head, tail ...
 run :: Ast -> Unsafe Val
 run a = runEnvUnsafe (eval a) stdLib
+
+
+
+instance Eq Val where
+  (I x) == (I y) = x == y
+  (F x) == (F y) = x == y
+  (B x) == (B y) = x == y
+  (C x) == (C y) = x == y
+  (S x) == (S y) = x == y
+  (Ls []) == (Ls []) = True
+  (Ls (x:xs)) == (Ls (y:ys)) = (x == y) && ((Ls xs) == (Ls ys))
+  _ == _ = False
+
+
+
+equals :: Ast -> Ast -> EnvUnsafe Env Val
+equals x y =
+  do x' <- eval x
+     y' <- eval y
+     return (B (x' == y'))
+
+notEquals :: Ast -> Ast -> EnvUnsafe Env Val
+notEquals x y =
+  do x' <- eval x
+     y' <- eval y
+     return (B (not $ x' == y'))
+
+lessThan :: Ast -> Ast -> EnvUnsafe Env Val
+lessThan x y =
+  do x' <- eval x
+     y' <- eval y
+     case (x', y') of
+       (I x'', I y'') -> return (B (x'' < y''))
+       (F x'', F y'') -> return (B (x'' < y''))
+       (B x'', B y'') -> return (B (x'' < y''))
+       (C x'', C y'') -> return (B (x'' < y''))
+       (S x'', S y'') -> return (B (x'' < y''))
+       _              -> return (B False)
+
+--maybe wrong because it will return true on equal lists?
+lessThanOrEquals :: Ast -> Ast -> EnvUnsafe Env Val
+lessThanOrEquals x y =
+  do x' <- eval x
+     y' <- eval y
+     case (x', y') of
+       (I x'', I y'') -> return (B (x'' <= y''))
+       (F x'', F y'') -> return (B (x'' <= y''))
+       (B x'', B y'') -> return (B (x'' <= y''))
+       (C x'', C y'') -> return (B (x'' <= y''))
+       (S x'', S y'') -> return (B (x'' <= y''))
+       _              -> return (B False)
+
+greaterThan :: Ast -> Ast -> EnvUnsafe Env Val
+greaterThan x y = 
+  do x' <- eval x
+     y' <- eval y
+     case (x', y') of
+       (I x'', I y'') -> return (B (x'' > y''))
+       (F x'', F y'') -> return (B (x'' > y''))
+       (B x'', B y'') -> return (B (x'' > y''))
+       (C x'', C y'') -> return (B (x'' > y''))
+       (S x'', S y'') -> return (B (x'' > y''))
+       _              -> return (B False)
+
+greaterThanOrEquals :: Ast -> Ast -> EnvUnsafe Env Val
+greaterThanOrEquals x y = 
+  do x' <- eval x
+     y' <- eval y
+     case (x', y') of
+       (I x'', I y'') -> return (B (x'' >= y''))
+       (F x'', F y'') -> return (B (x'' >= y''))
+       (B x'', B y'') -> return (B (x'' >= y''))
+       (C x'', C y'') -> return (B (x'' >= y''))
+       (S x'', S y'') -> return (B (x'' >= y''))
+       _              -> return (B False)
+       
 
 type Env = Map String Val
 
@@ -281,6 +364,8 @@ eval (Equals x y) = equals x y
 eval (NotEquals x y) = notEquals x y
 eval (LessThan x y) = lessThan x y
 eval (LessThanOrEquals x y) = lessThanOrEquals x y
+eval (GreaterThan x y) = greaterThan x y
+eval (GreaterThanOrEquals x y) = greaterThanOrEquals x y
 eval (And x y) =
   do x' <- evalBool x
      y' <- evalBool y
@@ -297,10 +382,6 @@ eval (NegExp x) =
 eval (Not x) =
   do x' <- evalBool x
      return (B (not x'))
-eval (IntExp b e) =
-  do b' <- evalInt b
-     e' <- evalInt e
-     return (I (b' ^ e'))
 eval (Plus x y) =
   do x' <- evalNum x
      y' <- evalNum y
@@ -331,9 +412,21 @@ eval (Div x y) = --not changing this one because div by 0
      case (x') of
        I xInt -> case (y') of
          I 0 -> err "Divide by 0 error"
-         I yInt -> return (I (xInt + yInt))
+         I yInt -> return (I (xInt `div` yInt))
+         _ -> err "Invalid types"
+       F xFloat -> case (y') of
+         F 0.0 -> err "Divide by 0 error"
+         F yFloat -> return (F (xFloat/yFloat))
          _ -> err "Invalid types"
        _ -> err "Invalid types"
+eval (IntOrFloatExp b e) =
+  do b' <- evalNum b
+     e' <- evalNum e
+     case (b',e') of 
+       (Left f1, Left f2) -> return (F (f1 ** f2))
+       (Right i1, Right i2) -> return (I (i1 ^ i2))
+       (Right _, Left _) -> err "Type Mismatch: Cannot exponentiate integer to a float"
+       (Left _, Right _) -> err "Type Mismatch: Cannot exponentiate float to an integer"
 eval (Nil) = return (Ls [])
 eval (Cons x y) =
   do x' <- eval x
@@ -395,7 +488,7 @@ showFullyParen (Plus l r) = "(" ++ (showFullyParen l) ++ " + " ++ (showFullyPare
 showFullyParen (Minus l r) = "(" ++ (showFullyParen l) ++ " - " ++ (showFullyParen r) ++ ")"
 showFullyParen (Mult l r) = "(" ++ (showFullyParen l) ++ " * " ++ (showFullyParen r) ++ ")"
 showFullyParen (Div l r) = "(" ++ (showFullyParen l) ++ " / " ++ (showFullyParen r) ++ ")"
-showFullyParen (IntExp b e) = "(" ++ (showFullyParen b) ++ " ** " ++ (showFullyParen e) ++ ")"
+showFullyParen (IntOrFloatExp b e) = "(" ++ (showFullyParen b) ++ " ** " ++ (showFullyParen e) ++ ")"
 showFullyParen (If b t e) = "(if " ++ (showFullyParen b) ++ " then " ++ (showFullyParen t) ++ " else " ++ (showFullyParen e) ++ ")"
 showFullyParen (Let v a bod) = "(let " ++ v ++ " = " ++ (showFullyParen a) ++ " in " ++ (showFullyParen bod) ++ ")"
 showFullyParen (Lam v bod) = "(\\ " ++ v ++ " -> " ++ (showFullyParen bod) ++ ")"
@@ -435,7 +528,7 @@ showPretty (Minus l r) i = parenthesize 10 i $ (showPretty l 10) ++ " - " ++ (sh
 showPretty (Plus l r) i = parenthesize 10 i $ (showPretty l 10) ++ " + " ++ (showPretty r 11)
 showPretty (Mult l r) i = parenthesize 12 i $ (showPretty l 12) ++ " * " ++ (showPretty r 13)
 showPretty (Div l r) i = parenthesize 12 i $ (showPretty l 12) ++ " / " ++ (showPretty r 13)
-showPretty (IntExp b e) i = parenthesize 13 i $ (showPretty b 13) ++ " ** " ++ (showPretty e 14)
+showPretty (IntOrFloatExp b e) i = parenthesize 13 i $ (showPretty b 13) ++ " ** " ++ (showPretty e 14)
 showPretty (ListIndex lst idx) i = parenthesize 14 i $ (showPretty lst 14) ++ " !! " ++ (showPretty idx 14)
 showPretty (NegExp x) i = parenthesize 14 i $ " - " ++ (showPretty x 14)
 showPretty (Not l ) i = parenthesize 14 i $  " ! " ++ (showPretty l 14)

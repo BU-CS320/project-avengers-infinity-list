@@ -10,7 +10,7 @@ cabal-version:        >=1.10
 
 
 library
-  exposed-modules:    Exec, Eval, Check, Parser, ParserMonad, Ast, Lang, LangParser
+  exposed-modules:    Exec, Eval, Check, Parser, ParserMonad, Ast, Lang, LangParser, EnvUnsafe, HelpShow
   ghc-options:        -fwarn-incomplete-patterns -fwarn-incomplete-uni-patterns
   build-depends:      containers, base >= 4.7 && < 5
   hs-source-dirs:     src
