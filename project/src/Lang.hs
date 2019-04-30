@@ -124,12 +124,13 @@ example9' = run example9
 data Ast = ValBool Bool
          | And Ast Ast | Or Ast Ast | Not Ast
 
-         | ValInt Integer 
+         | ValChar Char
+         | ValInt Integer
          | ValFloat Float
          | Plus Ast Ast | Minus Ast Ast | Mult Ast Ast | Div Ast Ast
          | IntOrFloatExp Ast Ast
 
-         | ValChar Char | ValString String
+         | ValString String
 
          | Equals Ast Ast
          | NotEquals Ast Ast
@@ -139,13 +140,6 @@ data Ast = ValBool Bool
          | GreaterThanOrEquals Ast Ast
          | IntExp Ast Ast
          | NegExp Ast
-
-         | ValChar Char | ValString String
-
-         | Equals Ast Ast
-         | NotEquals Ast Ast
-         | LessThan Ast Ast
-         | LessThanOrEquals Ast Ast
 
          | Nil
          | Cons Ast Ast
@@ -304,54 +298,6 @@ greaterThanOrEquals x y =
 type Env = Map String Val
 
 
-instance Eq Val where
-  (I x) == (I y) = x == y
-  (F x) == (F y) = x == y
-  (B x) == (B y) = x == y
-  (C x) == (C y) = x == y
-  (S x) == (S y) = x == y
-  (Ls []) == (Ls []) = True
-  (Ls (x:xs)) == (Ls (y:ys)) = (x == y) && ((Ls xs) == (Ls ys))
-  _ == _ = False
-
-
-
-equals :: Ast -> Ast -> EnvUnsafe Env Val
-equals x y =
-  do x' <- eval x
-     y' <- eval y
-     return (B (x' == y'))
-
-notEquals :: Ast -> Ast -> EnvUnsafe Env Val
-notEquals x y =
-  do x' <- eval x
-     y' <- eval y
-     return (B (not $ x' == y'))
-
-lessThan :: Ast -> Ast -> EnvUnsafe Env Val
-lessThan x y =
-  do x' <- eval x
-     y' <- eval y
-     case (x', y') of
-       (I x'', I y'') -> return (B (x'' < y''))
-       (F x'', F y'') -> return (B (x'' < y''))
-       (B x'', B y'') -> return (B (x'' < y''))
-       (C x'', C y'') -> return (B (x'' < y''))
-       (S x'', S y'') -> return (B (x'' < y''))
-       _              -> return (B False)
-
---maybe wrong because it will return true on equal lists?
-lessThanOrEquals :: Ast -> Ast -> EnvUnsafe Env Val
-lessThanOrEquals x y =
-  do x' <- eval x
-     y' <- eval y
-     case (x', y') of
-       (I x'', I y'') -> return (B (x'' <= y''))
-       (F x'', F y'') -> return (B (x'' <= y''))
-       (B x'', B y'') -> return (B (x'' <= y''))
-       (C x'', C y'') -> return (B (x'' <= y''))
-       (S x'', S y'') -> return (B (x'' <= y''))
-       _              -> return (B False)
 
 eval :: Ast -> EnvUnsafe Env Val
 eval (ValBool bool) = return (B bool)
