@@ -154,7 +154,7 @@ data Ast = ValBool Bool
 data Val = I Integer | B Bool | F Float | C Char
          | Ls [Val] | S [Char]
          | Fun (Val -> Unsafe Val) -- since this is a functional language, one thing that can be returned is a function
-
+         | Err String
 
 
 
@@ -186,7 +186,27 @@ stdLib = Map.fromList
                                   _    -> Error "can only call int on a float"),
    ("elem", Fun $ \ var -> Ok $ Fun $ \ list -> case list of
                                              Ls ls -> Ok $ (B (elem var ls))
-                                             _     -> Error "can only call elem on a list")]
+                                             _     -> Error "can only call elem on a list"),
+   ("filter", Fun $ \ func -> Ok $ Fun $ \ list -> case list of
+                                             Ls ls -> case func of
+                                               Fun fn -> Ok $ (Ls (filterHelper fn ls))
+                                               _ -> Error "first argument of filter must be a function"
+                                             _     -> Error "can only call filter on a list"),
+   ("map", Fun $ \ func -> Ok $ Fun $ \ list -> case list of
+                                             Ls ls -> case func of
+                                               Fun fn -> (Ok $ Ls (map (\(Ok a) -> a) (map fn ls))) 
+                                               _ -> Error "first argument of map must be a function"
+                                             _     -> Error "can only call map on a list")]
+
+--version of filter that works with functions that return Unsafe Val
+filterHelper :: (a -> Unsafe Val) -> [a] -> [a]
+filterHelper _ [] = []
+filterHelper func (head:body) = case (func head) of
+  Ok (B True) -> [head] ++ (filterHelper func body)
+  Ok (B False) -> (filterHelper func body)
+  _ -> (head:body)
+
+
 
 -- helper function that runs with a standard library of functions: head, tail ...
 run :: Ast -> Unsafe Val
