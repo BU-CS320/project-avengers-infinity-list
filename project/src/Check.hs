@@ -24,6 +24,14 @@ data WarningMsg =
 instance Ord WarningMsg where
   (<=) (UndefinedVarUse s1) (UndefinedVarUse s2) = s1 <= s2
 
+runScopeCheck :: Ast -> String
+runScopeCheck ast = let warningSet = (check ast) in logWarnings (Set.toList warningSet) ""
+
+logWarnings :: [WarningMsg] -> String -> String
+logWarnings [] warnings = warnings
+logWarnings (x:xs) warnings =
+  case x of (UndefinedVarUse s) -> logWarnings xs (warnings ++ (s ++ "\n"))
+
 inScopeVar :: String -> Set String -> Bool
 inScopeVar var scope = Set.member var scope
 
