@@ -28,6 +28,7 @@ evalNum a = do a' <- eval a
                case a' of
                  F f -> return (Left f)
                  I i -> return (Right i)
+                 _   -> err "Not a number"
 
 evalInt :: Ast -> EnvUnsafe Env Integer
 evalInt a = do a' <- eval a
@@ -65,7 +66,6 @@ local changeEnv comp  = EnvUnsafe (\e -> runEnvUnsafe comp (changeEnv e) )
 
 
 -- ...
-
 -- ungraded bonus challenge: use a helper type class to do this functionality
 
 
@@ -105,6 +105,7 @@ data Ast = ValBool Bool
          | ValFloat Float
          | Plus Ast Ast | Minus Ast Ast | Mult Ast Ast | Div Ast Ast
          | IntExp Ast Ast
+         | NegExp Ast
 
          | Nil
          | Cons Ast Ast
@@ -163,6 +164,11 @@ eval (Or x y) =
   do x' <- evalBool x
      y' <- evalBool y
      return (B (x' || y'))
+eval (NegExp x) =
+  do x' <- evalNum x
+     case x' of
+       Left f -> return (F (0 - f))
+       Right i -> return (I (0 - i))
 eval (Not x) =
   do x' <- evalBool x
      return (B (not x'))
@@ -235,7 +241,6 @@ eval (Lam x bod) =
   do env <- getEnv
      return (Fun (\v -> runEnvUnsafe (eval bod) (Map.insert x v env)))
 
-
 testlam1 = Lam "x" (Plus (Var "x") (ValInt 4))
 testlam2 = App testlam1 (ValInt 3)
 
@@ -255,6 +260,7 @@ showFullyParen (ValBool True) = "(" ++ "true" ++ ")"
 showFullyParen (ValBool False) = "(" ++ "false" ++ ")"
 showFullyParen (And l r) = "(" ++ (showFullyParen l) ++ " && " ++ (showFullyParen r) ++ ")"
 showFullyParen (Or l r) = "(" ++ (showFullyParen l) ++ " || " ++ (showFullyParen r) ++ ")"
+showFullyParen (NegExp x) = "(-" ++ (showFullyParen x) ++ ")"
 showFullyParen (Not a) = "(" ++ " ! " ++ (showFullyParen a) ++ ")"
 showFullyParen (Plus l r) = "(" ++ (showFullyParen l) ++ " + " ++ (showFullyParen r) ++ ")"
 showFullyParen (Minus l r) = "(" ++ (showFullyParen l) ++ " - " ++ (showFullyParen r) ++ ")"
@@ -302,7 +308,7 @@ showPretty (Mult l r) i = parenthesize 12 i $ (showPretty l 12) ++ " * " ++ (sho
 showPretty (Div l r) i = parenthesize 12 i $ (showPretty l 12) ++ " / " ++ (showPretty r 13)
 showPretty (IntExp b e) i = parenthesize 13 i $ (showPretty b 13) ++ " ** " ++ (showPretty e 14)
 showPretty (ListIndex lst idx) i = parenthesize 14 i $ (showPretty lst 14) ++ " !! " ++ (showPretty idx 14)
-
+showPretty (NegExp x) i = parenthesize 14 i $ " - " ++ (showPretty x 14)
 showPretty (Not l ) i = parenthesize 14 i $  " ! " ++ (showPretty l 14)
 
 
