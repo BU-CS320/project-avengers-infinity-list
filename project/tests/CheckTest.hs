@@ -14,4 +14,3 @@ tests = testGroup "CheckTest"
   error "no tests yet!"
   -- ...
   ]
-
