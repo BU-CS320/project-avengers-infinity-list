@@ -50,8 +50,10 @@ cons = cons' <|> orExpr
 cons' :: Parser Ast
 cons' = do x <- (token orExpr)
            token (literal ":")
-           y <- (token cons)
-           return (Cons x y)
+           y <- (token cons) <|> nil
+           case y of (Cons _ _) -> return (Cons x y)
+                     Nil        -> return (Cons x y)
+                     _          -> return (Cons x (Cons y Nil))
 
 -- *LangParser> parse cons "1 : 4: true"
 -- Just (1 : 4 : true,"")
@@ -70,17 +72,15 @@ orExpr = withInfix andExpr [("||", Or)]
 andExpr :: Parser Ast
 andExpr = withInfix comparison [("&&", And)]
 
--- *LangParser> parse andExpr "false"
--- Just (false,"")
--- *LangParser> parse andExpr "false && false"
--- Just (false && false,"")
 
 comparison :: Parser Ast
 comparison = withInfix addSubExpr [("==", Equals), ("/=", NotEquals), ("<=", LessThanOrEquals), ("<", LessThan)]
 
 addSubExpr :: Parser Ast
-addSubExpr = withInfix multDivExpr [("+", Plus), ("-", Minus)]
+addSubExpr = withInfix multDivExpr [("+", Plus),("-", Minus)]
 
+-- subExpr :: Parser Ast
+-- subExpr = withInfix multDivExpr [("-", Minus)]
 -- *LangParser> parse addSubExpr "1+2+3+4"
 -- Just (1 + 2 + 3 + 4,"")
 -- *LangParser> parse addSubExpr "1-2-3-4"
@@ -90,24 +90,27 @@ multDivExpr :: Parser Ast
 multDivExpr = withInfix expExpr [("*", Mult), ("/", Div)]
 
 expExpr :: Parser Ast
-expExpr = withInfix notExp [("**", IntExp)]
+expExpr = withInfix listIndexExpr [("**", IntExp)]
 
+listIndexExpr :: Parser Ast
+listIndexExpr = withInfix prefixExpr [("!!", ListIndex)]
 
-notExp :: Parser Ast --HAS PROBLEMS
-notExp = notExp' <|> atoms
+prefixExpr :: Parser Ast
+prefixExpr = notExp <|> negExp <|> atoms
 
-notExp' :: Parser Ast
-notExp' = do token (literal "!")
-             x <- (token notExp)
-             return (Not x)
+negExp :: Parser Ast
+negExp = do token (literal "-")
+            x <- (token prefixExpr)
+            return (NegExp x)
 
 atoms:: Parser Ast
-atoms = ints <|> bools <|> nil <|> parens <|> ifParser <|> letParser <|> lambdaParser <|> vars <|> comment
+atoms = ints <|> bools <|> nil <|> parens <|> ifParser <|> letParser <|> lambdaParser <|> vars
 
--- *LangParser> parse atoms "111"
--- Just (111,"")
--- *LangParser> parse atoms "  true"
--- Just (true,"")
+notExp :: Parser Ast
+notExp = do token (literal "!")
+            x <- (token prefixExpr)
+            return (Not x)
+
 
 vars :: Parser Ast
 vars = do s <- token $ varParser
@@ -204,7 +207,7 @@ exec s = case (parse parser) s of
 
 
 {- Note: The easiest thing is to simply copy this code into
-   your LangParser.hs file. 
+   your LangParser.hs file.
 
    To run the function test below, in Lang.hs you will
    need to derive Show for the Ast rather than
@@ -348,7 +351,7 @@ p = parse parser
 
 p' x = case parse parser x of
           Just (res,"") -> showPretty res 0
-          Just (res,_)  -> "Partial parse: " ++ showPretty res 0 
+          Just (res,_)  -> "Partial parse: " ++ showPretty res 0
           Nothing       -> "Parsing Error"
 
 test x = do print x
