@@ -5,7 +5,7 @@
     * Which Additional Features you plan to do (tentative, can be changed)
     * Who has primary responsibility for what (should be approximately equal, and, again, can be changed)
   * Completion is worth 5pts/100.
-* Milestone 2: **4/29/19**
+* Milestone 2: **4/30/19**
   * Submit your tests for the project
     * Tests should be organized in a reasonable way, each test file should contain a toplevel test group and focus on testing one aspect of the project.  For example, ParserTest.hs should not use exec, it should test the parser directly.
     * Tests should be thorough, a Parser test without quickcheck should have more than 20 tests.  Every time you fix a bug, make a test.
@@ -97,7 +97,7 @@ in increasing order, L associative except as noted, for arithmetic,relational,
     ^     Floating-Point Exponentiation             -- R associative
     **    Integer Exponential                       -- R associative
   <hr> 
-    !!    List indexing operator     -- R associative, left operand must be list, right must be integer
+    !!    List indexing operator     -- L associative, left operand must be list, right must be integer
   <hr> 
     -- prefix operators and functions
     not    Boolean not

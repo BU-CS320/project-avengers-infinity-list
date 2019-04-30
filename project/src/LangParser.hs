@@ -31,7 +31,17 @@ parser = apps
 keywords = ["if","then","else", "let", "in", "true","false"]
 
 apps :: Parser Ast
-apps = withInfix cons [("",App)] -- the tokens eat up all the spaces so we split on the empty string
+apps = withInfix seps [("",App)] -- the tokens eat up all the spaces so we split on the empty string
+
+seps :: Parser Ast
+seps = seps' <|> cons
+
+--right associative
+seps' :: Parser Ast
+seps' = do x <- (token cons)
+           token (literal ";")
+           y <- (token seps)
+           return (Separator x y)
 
 cons :: Parser Ast
 cons = cons' <|> orExpr
@@ -60,7 +70,11 @@ orExpr = withInfix andExpr [("||", Or)]
 -- Just (true,"")
 
 andExpr :: Parser Ast
-andExpr = withInfix addSubExpr [("&&", And)]
+andExpr = withInfix comparison [("&&", And)]
+
+
+comparison :: Parser Ast
+comparison = withInfix addSubExpr [("==", Equals), ("/=", NotEquals), ("<=", LessThanOrEquals), ("<", LessThan)]
 
 addSubExpr :: Parser Ast
 addSubExpr = withInfix multDivExpr [("+", Plus),("-", Minus)]
@@ -89,18 +103,14 @@ negExp = do token (literal "-")
             x <- (token prefixExpr)
             return (NegExp x)
 
+atoms:: Parser Ast
+atoms = ints <|> bools <|> nil <|> parens <|> ifParser <|> letParser <|> lambdaParser <|> vars
+
 notExp :: Parser Ast
 notExp = do token (literal "!")
             x <- (token prefixExpr)
             return (Not x)
 
-
-atoms :: Parser Ast
-atoms = ints <|> bools  <|>  nil <|> parens <|> ifParser <|> letParser <|>  lambdaParser <|> vars
--- *LangParser> parse atoms "111"
--- Just (111,"")
--- *LangParser> parse atoms "  true"
--- Just (true,"")
 
 vars :: Parser Ast
 vars = do s <- token $ varParser
@@ -160,6 +170,8 @@ parens = do token $ literal "("
             ast <- parser
             token $ literal ")"
             return ast
+
+
 
 -- *LangParser> parse parser "(true)"
 -- Just (true,"")
