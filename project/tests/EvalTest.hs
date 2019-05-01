@@ -84,9 +84,6 @@ tests = testGroup "EvalTest"
       assertEqual "True or False" (Ok $ B True) (run (Or (ValBool True) (ValBool False)))
       assertEqual "False or True" (Ok $ B True) (run (Or (ValBool False) (ValBool True)))
       assertEqual "False or False" (Ok $ B False) (run (Or (ValBool False) (ValBool False))),
-  testCase "Lists: " $
-    do
-      assertEqual "[1,2,3]" (Ok $ Ls [1,2,3]) (run (Cons 1 (Cons 2 (Cons 3 Nil)))),
   testCase "If Condition: " $
     do
       assertEqual "if 3 then 4 else 2 =? " (Ok $ I 4) (run (If (ValInt 3) (ValInt 4) (ValInt 2)))
@@ -94,7 +91,13 @@ tests = testGroup "EvalTest"
   testCase "Separator: " $
     do
       assertEqual "3;4 =? "    (Ok $ I 4) (run (Separator (ValInt 3) (ValInt 4)))
-
-
+      assertEqual "2;10 =? "   (Ok $ I 10) (run (Separator (ValInt 2) (ValInt 10))),
+  testCase "Let Statements: " $
+    do
+      assertEqual "let x = 4 in x * 2 =? " (Ok $ I 8) (run (Let ("x") (ValInt 4) (Mult (ValString "x") (ValInt 2))))
+      assertEqual "let x = 4 in x - 1 =? " (Ok $ I 3) (run (Let ("x") (ValInt 4) (Minus (ValString "x") (ValInt 1)))),
+  testCase "App/Lam Statements: " $
+    do
+      assertEqual "(\x -> x) 3" (Ok $ I 3) (run (App (Lam ("x") (ValString "x")) (ValInt 3)))
   ]
 
