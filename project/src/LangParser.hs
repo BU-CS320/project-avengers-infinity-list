@@ -100,7 +100,7 @@ multDivExpr :: Parser Ast
 multDivExpr = withInfix expExpr [("*", Mult), ("/", Div)]
 
 expExpr :: Parser Ast
-expExpr = withInfix notExp [("**", IntOrFloatExp)]
+expExpr = withInfix listIndexExpr [("**", IntOrFloatExp)]
 
 listIndexExpr :: Parser Ast
 listIndexExpr = withInfix prefixExpr [("!!", ListIndex)]
