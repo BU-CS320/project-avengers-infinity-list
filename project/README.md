@@ -56,16 +56,13 @@ James Mortenson
 We will be implementing ALL of the "simple" additions, as well as TWO of the engineering best practices, and the Parser error reporting features.
 
 David Kirk
-- Infix operator (.)
-- Quickcheck generator and shrinker for AST
 
-Jason Hong
-- Multi-support lambda
-- Haddock style comments and html documentation
 
-James Mortenson
-- Sequential let
-- Adding letrec
+Jason Hong & James Mortenson
+- Multi argument lambda
+- infix operator
+- sequential let
+- haddock doc + html generator
 
 Together: Error reporting Parser monad errors, w/ clear error messages
   - For error reporting, we might consider changing the eval<Bool, Int, List> method behaviors to produce strings without returning a value so that we can maintain the context that produced the error.
