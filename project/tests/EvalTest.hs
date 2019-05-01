@@ -40,10 +40,10 @@ eqFun (Fun f) (Fun g) = f == g
 eqFun _ _ = False
 -}
 
-tests = testGroup "EvalTest" 
+tests = testGroup "EvalTest"
   [
-  testCase "Basic Ints/Bools/Floats/Chars/Strings : " $
-    do 
+  testCase "Basic Ints/Bools/Floats/Chars/Strings: " $
+    do
       assertEqual "Bool True "   (Ok $ B True) (run (ValBool True))
       assertEqual "Bool False "  (Ok $ B True) (run (ValBool True))
       assertEqual "Ints "        (Ok $ I 2)    (run (ValInt 2))
@@ -61,10 +61,27 @@ tests = testGroup "EvalTest"
       assertEqual "2 - 4 =? "    (Ok $ I (-2)) (run (Minus (ValInt 2) (ValInt 4)))
       assertEqual "3 * 2 =? "    (Ok $ I 6)    (run (Mult (ValInt 3) (ValInt 2)))
       assertEqual "3 / 2 =? "    (Ok $ I 1)    (run (Div (ValInt 3) (ValInt 2)))
-      assertEqual "2 ** 4 =? "   (Ok $ I 16)   (run (IntOrFloatExp (ValInt 2) (ValInt 4)))
---  testCase "If Statements: " $
---    do
-      
-      
+      assertEqual "2 ** 4 =? "   (Ok $ I 16)   (run (IntOrFloatExp (ValInt 2) (ValInt 4))),
+  testCase "Comparison Operators: " $
+    do
+      assertEqual "3 == 3 =? "   (Ok $ B True)  (run (Equals (ValInt 3) (ValInt 3)))
+      assertEqual "3 != 4 =? "   (Ok $ B True)  (run (NotEquals (ValInt 3) (ValInt 4)))
+      assertEqual "4 < 5 =? "    (Ok $ B True)  (run (LessThan (ValInt 4) (ValInt 5)))
+      assertEqual "5 < 4 =? "    (Ok $ B False) (run (LessThan (ValInt 5) (ValInt 4)))
+      assertEqual "4 > 5 =? "    (Ok $ B False) (run (GreaterThan (ValInt 4) (ValInt 5)))
+      assertEqual "5 > 4 =? "    (Ok $ B True)  (run (GreaterThan (ValInt 5) (ValInt 4)))
+      assertEqual "4 <= 5 =? "    (Ok $ B True)  (run (LessThanOrEquals (ValInt 4) (ValInt 5)))
+      assertEqual "5 <= 4 =? "    (Ok $ B False) (run (LessThanOrEquals (ValInt 5) (ValInt 4)))
+      assertEqual "4 >= 5 =? "    (Ok $ B False) (run (GreaterThanOrEquals (ValInt 4) (ValInt 5)))
+      assertEqual "5 >= 4 =? "    (Ok $ B True)  (run (GreaterThanOrEquals (ValInt 5) (ValInt 4))),
+  testCase "Boolean Operators: " $
+    do
+      assertEqual "True and True" (Ok $ B True) (run (And (ValBool True) (ValBool True)))
+      assertEqual "True and False" (Ok $ B False) (run (And (ValBool True) (ValBool False)))
+      assertEqual "False and True" (Ok $ B False) (run (And (ValBool False) (ValBool True)))
+      assertEqual "False and False" (Ok $ B False) (run (And (ValBool False) (ValBool False)))
+
+
+
   ]
 
