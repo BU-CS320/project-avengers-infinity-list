@@ -217,6 +217,8 @@ ex2 = showPretty (Cons (Var "z") (Not (Not (Plus (Mult (ValInt (-18)) Nil) (Not 
 
 ex3 = "! ! (-18)"
 
+ex4 = "(1 - false >= (if (-8) then true else true) && [] / (-7) < false * []) > (let z = (true false) == (-5) / (-6) in (false && 7) + ((-9) : (-2)))"
+
 -- for repl testing
 data LangOut = ParseError | RuntimeError String | Result Val deriving Show
 

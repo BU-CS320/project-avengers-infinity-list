@@ -87,6 +87,7 @@ e4 = showPretty (Div (Minus (ValInt 100) (ValInt 2)) (Div (Div (ValInt 100) (Val
 e5 = showPretty (((Var "fun") `App` (ValInt 2)) `App` (ValInt 5)) $ 0
 
 e6 = showPretty (Not $ Not $ ((Var "fun") `App` (ValInt 2)) `App` (Not $ ValInt 5)) $ 0
+e7 = showPretty (Equals (Minus (ValInt 100) (ValInt 2)) (Div (Div (ValInt 100) (ValInt 2)) (ValInt 5) )  ) $ 0
 
 example = let x = Var "x"
           in App (Lam "x" ( x `Plus` x))  (ValInt 7)
@@ -443,6 +444,12 @@ showFullyParen (Var s) = "( " ++ s ++ ")"
 showFullyParen (Cons h t) = "(" ++ (showFullyParen h)  ++ " : " ++ (showFullyParen t) ++ ")"
 showFullyParen Nil = "( [] )"
 showFullyParen (ListIndex lst idx) = "(" ++ (showFullyParen lst) ++ " !! " ++ (showFullyParen idx) ++ ")"
+showFullyParen (Equals l r) = "(" ++ (showFullyParen l) ++ " == " ++ (showFullyParen r) ++ ")"
+showFullyParen (NotEquals l r) = "(" ++ (showFullyParen l) ++ " /= " ++ (showFullyParen r) ++ ")"
+showFullyParen (LessThan l r) = "(" ++ (showFullyParen l) ++ " < " ++ (showFullyParen r) ++ ")"
+showFullyParen (LessThanOrEquals l r) = "(" ++ (showFullyParen l) ++ " <= " ++ (showFullyParen r) ++ ")"
+showFullyParen (GreaterThan l r) = "(" ++ (showFullyParen l) ++ " > " ++ (showFullyParen r) ++ ")"
+showFullyParen (GreaterThanOrEquals l r) = "(" ++ (showFullyParen l) ++ " >= " ++ (showFullyParen r) ++ ")"
 
 
 -- provide a nice show with minimal parentheses, for testing an documentation
@@ -470,13 +477,21 @@ showPretty (App l r) i = parenthesize 2 i $ (showPretty l 2) ++ " " ++ (showPret
 showPretty (Cons l r) i = parenthesize 4 i $ (showPretty l 5) ++ " : " ++ (showPretty r 4)
 showPretty (Or l r) i = parenthesize 6 i $ (showPretty l 6) ++ " || " ++ (showPretty r 7)
 showPretty (And l r) i = parenthesize 8 i $ (showPretty l 8) ++ " && " ++ (showPretty r 9)
-showPretty (Minus l r) i = parenthesize 10 i $ (showPretty l 10) ++ " - " ++ (showPretty r 11)
-showPretty (Plus l r) i = parenthesize 10 i $ (showPretty l 10) ++ " + " ++ (showPretty r 11)
-showPretty (Mult l r) i = parenthesize 12 i $ (showPretty l 12) ++ " * " ++ (showPretty r 13)
-showPretty (Div l r) i = parenthesize 12 i $ (showPretty l 12) ++ " / " ++ (showPretty r 13)
-showPretty (IntOrFloatExp b e) i = parenthesize 13 i $ (showPretty b 13) ++ " ** " ++ (showPretty e 14)
-showPretty (ListIndex lst idx) i = parenthesize 14 i $ (showPretty lst 14) ++ " !! " ++ (showPretty idx 14)
-showPretty (NegExp x) i = parenthesize 14 i $ " - " ++ (showPretty x 14)
-showPretty (Not l ) i = parenthesize 14 i $  " ! " ++ (showPretty l 14)
+
+showPretty (Equals l r) i = parenthesize 10 i $ (showPretty l 10) ++ " == " ++ (showPretty r 11)
+showPretty (NotEquals l r) i = parenthesize 10 i $ (showPretty l 10) ++ " /= " ++ (showPretty r 11)
+showPretty (LessThanOrEquals l r) i = parenthesize 10 i $ (showPretty l 10) ++ " <= " ++ (showPretty r 11)
+showPretty (LessThan l r) i = parenthesize 10 i $ (showPretty l 10) ++ " < " ++ (showPretty r 11)
+showPretty (GreaterThanOrEquals l r) i = parenthesize 10 i $ (showPretty l 10) ++ " >= " ++ (showPretty r 11)
+showPretty (GreaterThan l r) i = parenthesize 10 i $ (showPretty l 10) ++ " > " ++ (showPretty r 11)
+
+showPretty (Minus l r) i = parenthesize 11 i $ (showPretty l 11) ++ " - " ++ (showPretty r 12)
+showPretty (Plus l r) i = parenthesize 11 i $ (showPretty l 11) ++ " + " ++ (showPretty r 12)
+showPretty (Mult l r) i = parenthesize 13 i $ (showPretty l 13) ++ " * " ++ (showPretty r 14)
+showPretty (Div l r) i = parenthesize 13 i $ (showPretty l 13) ++ " / " ++ (showPretty r 14)
+showPretty (IntOrFloatExp b e) i = parenthesize 14 i $ (showPretty b 14) ++ " ** " ++ (showPretty e 15)
+showPretty (ListIndex lst idx) i = parenthesize 15 i $ (showPretty lst 15) ++ " !! " ++ (showPretty idx 16)
+showPretty (NegExp x) i = parenthesize 15 i $ " - " ++ (showPretty x 15)
+showPretty (Not l ) i = parenthesize 15 i $  " ! " ++ (showPretty l 15)
 
 
