@@ -62,7 +62,7 @@ cons'' = do token $ literal "["
             y <- (token cons)
             case y of (Cons _ _) -> return (Cons x y)
                       _          -> return (Cons x (Cons y Nil))
-                      
+
 
 
 -- *LangParser> parse cons "1 : 4: true"

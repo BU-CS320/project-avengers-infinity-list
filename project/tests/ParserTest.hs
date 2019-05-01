@@ -46,7 +46,7 @@ tests = testGroup "parser Test"
       [
       testProperty "parse should return the same AST when fully parenthesized" $
                   ((\ x -> Just (x , "") == (parse parser $ showFullyParen x)) :: Ast -> Bool),
-        
+
       testProperty "parse should return the same AST when pretty printed" $
                   ((\ x -> Just (x , "") == (parse parser $ showPretty x 0)) :: Ast -> Bool)
       ]
