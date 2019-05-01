@@ -80,7 +80,20 @@ tests = testGroup "EvalTest"
       assertEqual "True and False" (Ok $ B False) (run (And (ValBool True) (ValBool False)))
       assertEqual "False and True" (Ok $ B False) (run (And (ValBool False) (ValBool True)))
       assertEqual "False and False" (Ok $ B False) (run (And (ValBool False) (ValBool False)))
-
+      assertEqual "True or True" (Ok $ B True) (run (Or (ValBool True) (ValBool True)))
+      assertEqual "True or False" (Ok $ B True) (run (Or (ValBool True) (ValBool False)))
+      assertEqual "False or True" (Ok $ B True) (run (Or (ValBool False) (ValBool True)))
+      assertEqual "False or False" (Ok $ B False) (run (Or (ValBool False) (ValBool False))),
+  testCase "Lists: " $
+    do
+      assertEqual "[1,2,3]" (Ok $ Ls [1,2,3]) (run (Cons 1 (Cons 2 (Cons 3 Nil)))),
+  testCase "If Condition: " $
+    do
+      assertEqual "if 3 then 4 else 2 =? " (Ok $ I 4) (run (If (ValInt 3) (ValInt 4) (ValInt 2)))
+      assertEqual "if 0 then 1 else 4 =? " (Ok $ I 4) (run (If (ValInt 0) (ValInt 1) (ValInt 4))),
+  testCase "Separator: " $
+    do
+      assertEqual "3;4 =? "    (Ok $ I 4) (run (Separator (ValInt 3) (ValInt 4)))
 
 
   ]
