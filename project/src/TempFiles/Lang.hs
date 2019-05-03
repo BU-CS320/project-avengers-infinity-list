@@ -10,67 +10,70 @@ import qualified Data.Set as Set --used for lambda stuff
 
 import HelpShow
 
-import EnvUnsafe
-
+import EnvUnsafeLog
 
 -- some helper function, you may find helpful
-valOf :: String -> EnvUnsafe Env Val
+valOf :: String -> EnvUnsafeLog Env String Val
 valOf var = do env <- getEnv
                case (Map.lookup var env) of
                   Just i  -> return i
                   Nothing -> err "Variable not found!"
 
--- add a val into the environment
-withVal :: String -> Val -> EnvUnsafe Env a -> EnvUnsafe Env a
-withVal var v comp = undefined
 
 -- helper functions that take care of type issues (use a "Error" when things have the wron type
-evalNum :: Ast -> EnvUnsafe Env (Either Float Integer)
+evalNum :: Ast -> EnvUnsafeLog Env String (Either Float Integer)
 evalNum a = do a' <- eval a
                case a' of
                  F f -> return (Left f)
                  I i -> return (Right i)
                  _   -> err "Not a number"
 
-evalInt :: Ast -> EnvUnsafe Env Integer
+evalInt :: Ast -> EnvUnsafeLog Env String Integer
 evalInt a = do a' <- eval a
                case a' of
                  I i -> return i
                  _ -> err "Not an int"
 
-evalFloat :: Ast -> EnvUnsafe Env Float
+evalFloat :: Ast -> EnvUnsafeLog Env String Float
 evalFloat a = do a' <- eval a
                  case a' of
                    F f -> return f
                    _ -> err "Not a float"
 
-evalChar :: Ast -> EnvUnsafe Env Char
+evalChar :: Ast -> EnvUnsafeLog Env String Char
 evalChar a = do a' <- eval a
                 case a' of
                   C c -> return c
                   _ -> err "Not an int"
 
-evalBool :: Ast -> EnvUnsafe Env Bool
+evalBool :: Ast -> EnvUnsafeLog Env String Bool
 evalBool a = do a' <- eval a
                 case a' of
                   B b -> return b
                   _ -> err "Not a bool"
 
-evalList :: Ast -> EnvUnsafe Env [Val]
+evalList :: Ast -> EnvUnsafeLog Env String [Val]
 evalList a = do a' <- eval a
                 case a' of
                   Ls x -> return x
                   _ -> err "Not a list"
 
-evalFun :: Ast -> EnvUnsafe Env (Val -> Unsafe Val)
+evalFun :: Ast -> EnvUnsafeLog Env String (Val -> (Unsafe Val, [String]))
 evalFun a = do a' <- eval a
                case a' of
                  Fun a' -> return a'
                  _ -> err "Not a function"
 
+evalPrint :: Ast -> EnvUnsafeLog Env String Val
+evalPrint a = do a' <- eval a
+                 let str = show a'
+                 printBuffer str
+                 return a'
+
+
 --COPIED FROM HW8--not sure if this even works, but it's worth a shot (for the let expression)
-local :: (r -> r) -> EnvUnsafe r a -> EnvUnsafe r a
-local changeEnv comp  = EnvUnsafe (\e -> runEnvUnsafe comp (changeEnv e) )
+local :: (r -> r) -> EnvUnsafeLog r String a -> EnvUnsafeLog r String a
+local changeEnv comp  = EnvUnsafeLog (\e -> runEnvUnsafe comp (changeEnv e) )
 
 
 -- ...
@@ -139,7 +142,6 @@ data Ast = ValBool Bool
          | LessThanOrEquals Ast Ast
          | GreaterThan Ast Ast
          | GreaterThanOrEquals Ast Ast
-         | IntExp Ast Ast
          | NegExp Ast
 
          | Nil
@@ -154,6 +156,7 @@ data Ast = ValBool Bool
          | App Ast Ast
 
          | Separator Ast Ast
+         | Print Ast
          deriving (Eq,Show) -- helpful to use this during testing
          --deriving Eq
 
@@ -164,7 +167,7 @@ data Ast = ValBool Bool
 -- the goal of the program is to return a value
 data Val = I Integer | B Bool | F Float | C Char
          | Ls [Val] | S [Char]
-         | Fun (Val -> Unsafe Val) -- since this is a functional language, one thing that can be returned is a function
+         | Fun (Val -> (Unsafe Val, [String])) -- since this is a functional language, one thing that can be returned is a function
          | Err String
 
 
@@ -180,44 +183,50 @@ instance Show Val where
   show (Fun _) = "\\ x -> ?" -- no good way to show a function
 
 stdLib = Map.fromList
-  [("tail", Fun $ \ v -> case v of Ls (_:ls) -> Ok $ Ls ls
-                                   _         -> Error "can only call tail on a non empty list"),
-   ("head", Fun $ \ v -> case v of Ls (head:_) -> Ok $ head
-                                   _           -> Error "can only call head on a non empty list"),
-   ("len", Fun $ \ v -> case v of Ls ls -> Ok $ (I (fromIntegral (length ls)))
-                                  _     -> Error "can only call length on a list"),
-   ("ord", Fun $ \ v -> case v of C ch -> Ok $ (I (fromIntegral (ord ch)))
-                                  _    -> Error "can only call ord on a char"),
-   ("chr", Fun $ \ v -> case v of I integer -> Ok $ (C (chr (fromIntegral integer)))
-                                  _    -> Error "can only call chr on a char"),
-   ("float", Fun $ \ v -> case v of I integer -> Ok $ (F (realToFrac (fromIntegral integer)))
-                                    _    -> Error "can only call float on an int"),
-   ("int", Fun $ \ v -> case v of F fl -> Ok $ (F (fromIntegral (truncate fl)))
-                                  _    -> Error "can only call int on a float"),
-   ("elem", Fun $ \ var -> Ok $ Fun $ \ list -> case list of
-                                             Ls ls -> Ok $ (B (elem var ls))
-                                             _     -> Error "can only call elem on a list"),
-   ("filter", Fun $ \ func -> Ok $ Fun $ \ list -> case list of
+  [("tail", Fun $ \ v -> case v of Ls (_:ls) -> ((Ok $ Ls ls), [])
+                                   _         -> (Error "can only call tail on a non empty list", [])),
+   ("head", Fun $ \ v -> case v of Ls (head:_) -> ((Ok $ head), [])
+                                   _           -> (Error "can only call head on a non empty list", [])),
+   ("len", Fun $ \ v -> case v of Ls ls -> ((Ok $ (I (fromIntegral (length ls)))), [])
+                                  _     -> (Error "can only call length on a list", [])),
+   ("ord", Fun $ \ v -> case v of C ch -> ((Ok $ (I (fromIntegral (ord ch)))), [])
+                                  _    -> (Error "can only call ord on a char", [])),
+   ("chr", Fun $ \ v -> case v of I integer -> ((Ok $ (C (chr (fromIntegral integer)))), [])
+                                  _    -> (Error "can only call chr on a char", [])),
+   ("float", Fun $ \ v -> case v of I integer -> ((Ok $ (F (realToFrac (fromIntegral integer)))), [])
+                                    _    -> (Error "can only call float on an int", [])),
+   ("int", Fun $ \ v -> case v of F fl -> ((Ok $ (F (fromIntegral (truncate fl)))), [])
+                                  _    -> (Error "can only call int on a float", [])),
+   ("elem", Fun $ \ var -> ((Ok $ Fun $ \ list -> case list of
+                                             Ls ls -> ((Ok $ (B (elem var ls))), [])
+                                             _     -> (Error "can only call elem on a list", [])), [])),
+   ("filter", Fun $ \ func -> ((Ok $ Fun $ \ list -> case list of
                                              Ls ls -> case func of
-                                               Fun fn -> Ok $ (Ls (filterHelper fn ls))
-                                               _ -> Error "first argument of filter must be a function"
-                                             _     -> Error "can only call filter on a list"),
-   ("map", Fun $ \ func -> Ok $ Fun $ \ list -> case list of
+                                               Fun fn -> ((Ok $ (Ls (filterHelper fn ls))), [])
+                                               _ -> (Error "first argument of filter must be a function", [])
+                                             _     -> (Error "can only call filter on a list", [])), [])),
+   ("map", Fun $ \ func -> ((Ok $ Fun $ \ list -> case list of
                                              Ls ls -> case func of
-                                               Fun fn -> (Ok $ Ls (map (\(Ok a) -> a) (map fn ls))) 
-                                               _ -> Error "first argument of map must be a function"
-                                             _     -> Error "can only call map on a list")]
+                                               Fun fn -> ((Ok $ Ls (mapHelper fn ls)), [])
+                                               _ -> (Error "first argument of map must be a function", [])
+                                             _     -> (Error "can only call map on a list", []), [])))]
 
 --version of filter that works with functions that return Unsafe Val
-filterHelper :: (a -> Unsafe Val) -> [a] -> [a]
+filterHelper :: (a -> (Unsafe Val, [b])) -> [a] -> [a]
 filterHelper _ [] = []
 filterHelper func (head:body) = case (func head) of
-  Ok (B True) -> [head] ++ (filterHelper func body)
-  Ok (B False) -> (filterHelper func body)
+  (Ok (B True), log) -> [head] ++ (filterHelper func body)
+  (Ok (B False), log) -> (filterHelper func body)
   _ -> (head:body)
 
+mapHelper :: (Val -> (Unsafe Val, [b])) -> [Val] -> [Val]
+mapHelper _ [] = []
+mapHelper func (head:body) = let (res, log) = func head in case res of
+                                                             (Ok val) -> val:(mapHelper func body)
+                                                             (Error msg) -> head:body
+
 -- helper function that runs with a standard library of functions: head, tail ...
-run :: Ast -> Unsafe Val
+run :: Ast -> (Unsafe Val, [String])
 run a = runEnvUnsafe (eval a) stdLib
 
 
@@ -234,19 +243,19 @@ instance Eq Val where
 
 
 
-equals :: Ast -> Ast -> EnvUnsafe Env Val
+equals :: Ast -> Ast -> EnvUnsafeLog Env String Val
 equals x y =
   do x' <- eval x
      y' <- eval y
      return (B (x' == y'))
 
-notEquals :: Ast -> Ast -> EnvUnsafe Env Val
+notEquals :: Ast -> Ast -> EnvUnsafeLog Env String Val
 notEquals x y =
   do x' <- eval x
      y' <- eval y
      return (B (not $ x' == y'))
 
-lessThan :: Ast -> Ast -> EnvUnsafe Env Val
+lessThan :: Ast -> Ast -> EnvUnsafeLog Env String Val
 lessThan x y =
   do x' <- eval x
      y' <- eval y
@@ -259,7 +268,7 @@ lessThan x y =
        _              -> return (B False)
 
 --maybe wrong because it will return true on equal lists?
-lessThanOrEquals :: Ast -> Ast -> EnvUnsafe Env Val
+lessThanOrEquals :: Ast -> Ast -> EnvUnsafeLog Env String Val
 lessThanOrEquals x y =
   do x' <- eval x
      y' <- eval y
@@ -271,7 +280,7 @@ lessThanOrEquals x y =
        (S x'', S y'') -> return (B (x'' <= y''))
        _              -> return (B False)
 
-greaterThan :: Ast -> Ast -> EnvUnsafe Env Val
+greaterThan :: Ast -> Ast -> EnvUnsafeLog Env String Val
 greaterThan x y = 
   do x' <- eval x
      y' <- eval y
@@ -283,8 +292,8 @@ greaterThan x y =
        (S x'', S y'') -> return (B (x'' > y''))
        _              -> return (B False)
 
-greaterThanOrEquals :: Ast -> Ast -> EnvUnsafe Env Val
-greaterThanOrEquals x y = 
+greaterThanOrEquals :: Ast -> Ast -> EnvUnsafeLog Env String Val
+greaterThanOrEquals x y =
   do x' <- eval x
      y' <- eval y
      case (x', y') of
@@ -294,13 +303,13 @@ greaterThanOrEquals x y =
        (C x'', C y'') -> return (B (x'' >= y''))
        (S x'', S y'') -> return (B (x'' >= y''))
        _              -> return (B False)
-       
+
 
 type Env = Map String Val
 
 
 
-eval :: Ast -> EnvUnsafe Env Val
+eval :: Ast -> EnvUnsafeLog Env String Val
 eval (ValBool bool) = return (B bool)
 eval (ValInt int) = return (I int)
 eval (ValChar char) = return (C char)
@@ -369,7 +378,7 @@ eval (Div x y) = --not changing this one because div by 0
 eval (IntOrFloatExp b e) =
   do b' <- evalNum b
      e' <- evalNum e
-     case (b',e') of 
+     case (b',e') of
        (Left f1, Left f2) -> return (F (f1 ** f2))
        (Right i1, Right i2) -> return (I (i1 ^ i2))
        (Right _, Left _) -> err "Type Mismatch: Cannot exponentiate integer to a float"
@@ -397,6 +406,9 @@ eval (Separator ast1 ast2) =
   do ast1' <- eval ast1
      ast2' <- eval ast2
      return ast2'
+eval (Print ast) =
+  do ast' <- evalPrint ast
+     return ast'
 eval (Let var val bod) =
   do val' <- eval val
      local (Map.insert var val') (eval bod)
@@ -404,7 +416,7 @@ eval (App x y) =
   do x' <- evalFun x
      y' <- eval y
      case (x' y') of
-       Ok val -> return val
+       (Ok val, lst) -> return val
        _ -> err "Invalid function argument"
 eval (Lam x bod) =
   do env <- getEnv

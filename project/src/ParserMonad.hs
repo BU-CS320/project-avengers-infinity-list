@@ -33,7 +33,7 @@ instance Applicative Parser where
 
 instance Monad Parser where
   -- turns a input structure into a parser
-  -- by constructing a parser that 
+  -- by constructing a parser that
   --  * returns the input structure
   --  * do not change the string that is parsing
   return a =  Parser $ \ x -> Just (a,x)
@@ -59,8 +59,8 @@ mapParser pa f = fmap f pa
 
 -- | just read a char (from book)
 -- and return the char itself
--- 
--- >>> parse item "any string" 
+--
+-- >>> parse item "any string"
 -- Just ("a", "ny string")
 item :: Parser Char
 item = Parser $ \ input -> case input of ""    -> Nothing

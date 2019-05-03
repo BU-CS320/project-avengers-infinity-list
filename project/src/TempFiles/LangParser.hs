@@ -1,10 +1,11 @@
-module Parser where
+module LangParser where
 
-import Ast
+import Lang
 import ParserMonad
 import EnvUnsafeLog
 
--- | parser for the language
+
+
 parser :: Parser Ast
 parser = apps
 
@@ -160,3 +161,26 @@ parens = do token $ literal "("
             token $ literal ")"
             return ast
 
+-- for repl testing
+data LangOut = ParseError | RuntimeError String | Result Val deriving Show
+
+exec :: String -> LangOut
+exec s = case (parse parser) s of
+  Just (ast,"") -> case run ast of
+                     (Ok v, log) -> Result v
+                     (Error e, log) -> RuntimeError e
+  _  -> ParseError
+
+-- Just some code to help testing
+
+p = parse parser
+
+p' x = case parse parser x of
+          Just (res,"") -> showPretty res 0
+          Just (res,_)  -> "Partial parse: " ++ showPretty res 0
+          Nothing       -> "Parsing Error"
+
+test x = do print x
+            putStrLn $ show $ p x
+            putStrLn $ p' x
+            putStrLn ""
