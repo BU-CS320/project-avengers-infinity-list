@@ -2,6 +2,9 @@
 
 Follow the [instructions](INSTRUCTIONS.md), use this space to document your project for yourself and the graders.
 
+## Continuous Integration
+Travis-CI: https://travis-ci.com/BU-CS320/project-avengers-infinity-list/
+
 ## Names
 - David Kirk (dsak@bu.edu)
 - Jason Hong (jason810@bu.edu)
