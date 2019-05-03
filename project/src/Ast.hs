@@ -43,10 +43,10 @@ data Ast = ValBool Bool
 
          | Separator Ast Ast
          | Print Ast
-         deriving Eq
+         deriving (Eq,Show)
 
-instance Show Ast where
-  show ast = showPretty ast 0
+--instance Show Ast where
+--  show ast = showPretty ast 0
 
 showPretty :: Ast  -- ^ The Ast to show
             -> Integer  -- ^ The precedence of the root expression, see the doc for 'HelpShow.parenthesize' for more detail
