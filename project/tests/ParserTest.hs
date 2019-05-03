@@ -4,11 +4,11 @@ import Test.Tasty (testGroup)
 import Test.Tasty.HUnit (assertEqual, assertBool, testCase)
 import Test.Tasty.QuickCheck 
 
-import Lang (showFullyParen, showPretty, Ast(..))
+--import Lang (showFullyParen, showPretty, Ast(..))
 import ParserMonad (parse)
---import Ast
---import Parser
-import LangParser (parser)
+import Ast
+import Parser
+--import LangParser (parser)
 import HelpShow
 -- provide tests that show your parser works
 

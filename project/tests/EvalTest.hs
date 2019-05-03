@@ -4,10 +4,11 @@ import Test.Tasty (testGroup)
 import Test.Tasty.HUnit (assertEqual, assertBool, testCase)
 --import Test.Tasty.QuickCheck 
 
---import Ast
---import Eval
-import Lang
-import EnvUnsafe
+import Ast
+import Eval
+import EnvUnsafeLog
+--import Lang
+--import EnvUnsafe
 
 -- provide tests that show your run/eval works
 {-
