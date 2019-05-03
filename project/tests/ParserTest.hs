@@ -18,7 +18,7 @@ instance Arbitrary Ast where
 arbitrarySizedAst ::  Int -> Gen Ast
 arbitrarySizedAst m | m < 1 = do i    <- arbitrary -- will choose a random Integer
                                  b    <- arbitrary
-                                 node <- elements [Nil, ValInt i, ValBool b]  -- so put all the non-recursive Ast expressions here
+                                 node <- elements [Nil, ValInt (abs i), ValBool b]  -- so put all the non-recursive Ast expressions here
                                  return $ node
 arbitrarySizedAst m | otherwise = do l <- arbitrarySizedAst (m `div` 2)  -- get ast half as big
                                      r <- arbitrarySizedAst (m `div` 2)  -- ditto
@@ -28,9 +28,9 @@ arbitrarySizedAst m | otherwise = do l <- arbitrarySizedAst (m `div` 2)  -- get 
                                                        Plus l r, Minus l r, Mult l r, Div l r,
                                                        Equals l r, NotEquals l r, LessThan l r, GreaterThan l r, LessThanOrEquals l r, GreaterThanOrEquals l r,
                                                        IntOrFloatExp l r,
-                                                       Cons l r,
+                                                       Cons l Nil,
                                                        ListIndex l r, ifAst,
-                                                       Let x l r, App l r, Lam x l
+                                                       Let x l r, App l r, Lam x l, NegExp l
                                                       ]
                                      return node
 
