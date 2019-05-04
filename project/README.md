@@ -16,6 +16,7 @@ This is the programming language with which we will defeat ThanOS. Through our m
 In reality, we have implemented all vanilla features and five of the low-value mix-ins.
 
 ### Mix-In Features
+<pre>
 - Function composition operator (.)             (5pts)
 - Haddock-style comments                        (5pts)
 - Multiple argument lambdas                     (5pts)
@@ -23,6 +24,7 @@ In reality, we have implemented all vanilla features and five of the low-value m
 - Continuous integration setup (Travis)         (5pts)
 
 **TOTAL:                                          (25pts)**
+</pre>
 
 
 
