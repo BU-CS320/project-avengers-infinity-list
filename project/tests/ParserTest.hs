@@ -76,7 +76,7 @@ ex1 = showPretty (Minus (Var "y") (Minus (App (ValBool True) (ValInt (-3))) (Mul
 
 ex2 = showPretty (Cons (Var "z") (Not (Not (Plus (Mult (ValInt (-18)) Nil) (Not (ValInt 2)))))) 0
 
-ex3 = "! ! (-18)"
+ex3 = "not not (-18)"
 
 ex4 = "(1 - false >= (if (-8) then true else true) && [] / (-7) < false * []) > (let z = (true false) == (-5) / (-6) in (false && 7) + ((-9) : (-2)))"
 
@@ -92,11 +92,11 @@ t5 = "[]"
 
 t6 = "[   ]"
 
-t7 = "! false"
+t7 = "not false"
 
 t8 = "!5"
 
-t9 = "! ! ! []"
+t9 = "not not not []"
 
 t10 = "4 * 2"
 
@@ -104,7 +104,7 @@ t11 = "2 / 1"
 
 t12 = "3 * 9 / value  * 4"
 
-t13 = "!4 * true / ! ! []" --partial parse
+t13 = "!4 * true / not not []" --partial parse
 
 t14 = "2 + 4"
 
@@ -112,7 +112,7 @@ t15 = "9 - 2"
 
 t16 = "2 * x - 2 / 1"
 
-t17 = "! 6 * [] - true"
+t17 = "not 6 * [] - true"
 
 t18 = "true && b "
 
@@ -120,7 +120,7 @@ t19 = "false || true"
 
 t20 = "false && true || false && false"
 
-t21 = "! false && ! boolIdent || ! true"
+t21 = "not false && not boolIdent || not true"
 
 t22 = "4 && ![] || false"
 
@@ -128,7 +128,7 @@ t23 = " 4 : []"
 
 t24 = "true : false : x : []" --partial parse
 
-t25 = "4 + 2 : 5 / 1 : ! false && true || z : []" --partial parse
+t25 = "4 + 2 : 5 / 1 : not false && true || z : []" --partial parse
 
 t26 = "f 5"
 
@@ -192,9 +192,9 @@ t54 = "a * (b || c)"
 
 t55 = "y - ((true (-3)) - false * false)"
 
-t56 = "z :  !  ! ((-18) * [] +  ! 2)" --partial parse
+t56 = "z :  not  not ((-18) * [] +  not 2)" --partial parse
 
-t57 =  "! ! (-18)" --no parse
+t57 =  "not not (-18)" --no parse
 
 
 arbitrarySizedIf ::  Int -> Gen Ast
@@ -204,10 +204,10 @@ arbitrarySizedIf m = do x <- arbitrarySizedAst (m `div` 3)
                         return $ If x y z
 
 example1 = (Not (Not (Not (Nil))))
-example1' = "! ! ! []"
+example1' = "not not not []"
 
 example2 = (IntDiv (Mod (Not (ValInt 4)) (ValBool True)) (Not (Not Nil)))
-example2' = "!4 * true / ! ! []"
+example2' = "!4 * true / not not []"
 
 example3 = (If (Lam "x" (Var "x")) (Lam "y" (Var "y")) (Lam "z" (Var "z")))
 example3' = "if \\x -> x then \\y -> y else \\z -> z"

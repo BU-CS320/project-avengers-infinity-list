@@ -67,6 +67,9 @@ tests = testGroup "EvalTest"
     do
       assertEqual "Strings "     ((Ok $ S "asdf"),[])  (run (ValString "asdf"))
       assertEqual "Strings "     ((Ok $ S "fe.d"),[])  (run (ValString "fe.d")),
+  testCase "List Operators: " $
+    do
+      assertEqual "Lists [1,2]++[3,4] " ((Ok $ Ls [I 1, I 2, I 3, I 4]),[]) (run (ListConcat (Cons (ValInt 1) (Cons (ValInt 2) Nil)) (Cons (ValInt 3) (Cons (ValInt 4) Nil)))),
   testCase "Integer Arithmetic: " $
     do
       assertEqual "2 + 4 =? "    ((Ok $ I 6),[])    (run (Plus (ValInt 2) (ValInt 4)))

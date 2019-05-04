@@ -18,7 +18,7 @@ In reality, we have implemented all vanilla features and five of the low-value m
 ### Mix-In Features
 <pre>
 Function composition operator (.)               (5pts)
-Haddock-style comments                          (5pts)
+Haddock-style comments/HTML Docs                (5pts)
 Multiple-argument lambdas                       (5pts)
 Multiple-argument let                           (5pts)
 Continuous integration setup                    (5pts)

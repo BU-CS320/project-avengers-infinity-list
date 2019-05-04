@@ -1,0 +1,57 @@
+      assertEqual "3" (Ret (I 3) [] []) (exec "3")
+      assertEqual "3," (ParseError) (exec "3,")
+      assertEqual "3.0" (Ret (F 3.0) [] []) (exec "3.0")
+      assertEqual ",3.0" (ParseError) (exec ",3.0")
+      assertEqual "true" (Ret (B True) [] []) (exec "true")
+      assertEqual "false" (Ret (B False) [] []) (exec "false")
+      assertEqual "aaa" (RuntimeError "Variable not found!" [] [UndefinedVarUse "aaa is not in scope"]) (exec "aaa")
+
+
+
+
+
+
+      assertEqual "[12,true,2.2]" (Ret (Ls ([I 12, B True, F 2.2]))) (exec "[12,true,2.2]")
+      assertEqual "[1,2]++[3,4]" (Ret (Ls ([I 1, I 2, I 3, I 4]) [] [])) (exec "[1,2]++[3,4]")
+      assertEqual "[1,2]++[3,true,3.2]"
+      (Ret (Ls [I 1, I 2, I 3, B True, F 3.2]))
+      (exec "[1,2]++[3,true,3.2]")
+      assertEqual "[1,2]++2"
+      (RuntimeError "TypeMismatch: second argument (2) must be a list" [] [])
+      (exec "[1,2]++2")
+      assertEqual "[1,2,,,,,]"
+      (ParseError)
+      (exec "[1,2,,,,,]")
+      assertEqual "[]" (Ret (Ls []) [] []) (exec "[]")
+
+      assertEqual "1+5" (Ret (I 6) [] []) (exec "1+5")
+      assertEqual "1.3+3.2" (Ret (F 4.5) [] []) (exec "1.3+3.2")
+      assertEqual "1.0+5"
+      (RuntimeError "TypeMismatch: Cannot add float 1.0 and integer 5" [] [])
+      (exec "1.0+5")
+      assertEqual "++3"
+      (ParseError)
+      (exec "++3")
+
+      assertEqual "16-5" (Ret (I 11) [] []) (exec "16-5")
+      assertEqual "2.2-1.0" (Ret (F 1.2) [] []) (exec "2.2-1.0")
+      assertEqual "2.2-1"
+      (RuntimeError "TypeMismatch: Cannot subtract float 2.2 and integer 1" [] [])
+      (exec "2.2-1")
+      assertEqual "2.2-true"
+      (RuntimeError "true is not a number" [] [])
+      (exec "2.2-true")
+      assertEqual "2.2--"
+      (ParseError)
+      (exec "2.2--")
+
+      assertEqual "3*4" (Ret (I 12) [] []) (exec "3*4")
+      assertEqual "3.2*4.5" (Ret (F 14.400001) [] []) (exec "3.2*4.5")
+      assertEqual "3.2*3"
+      (RuntimeError "TypeMismatch: Cannot multiply float 3.2 and integer 3" [] [])
+      (exec "3.2*3")
+      assertEqual "8***2" (ParseError) (exec "8***2")
+      assertEqual "**2" (ParseError) (exec "**2")
+      assertEqual "*2" (ParseError) (exec "*2")
+
+      

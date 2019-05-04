@@ -107,7 +107,7 @@ atoms:: Parser Ast
 atoms = floats <|> ints <|> chars <|> strings <|> bools  <|>  nil <|> parens <|> ifParser <|> letParser <|>  lambdaParser <|> vars
 -- | parses the boolean not operator "!", which can include a prefixExpr in its body. Returns (Not x)
 notExp :: Parser Ast
-notExp = do token (literal "!")
+notExp = do token (literal "not")
             x <- (token prefixExpr)
             return (Not x)
 -- | parses the next variable using varParser, returns as Var.

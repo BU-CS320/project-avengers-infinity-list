@@ -106,7 +106,7 @@ showPretty (FloatExp b e) i = parenthesize 14 i $ (showPretty b 14) ++ " ^ " ++ 
 showPretty (ListIndex lst idx) i = parenthesize 15 i $ (showPretty lst 15) ++ " !! " ++ (showPretty idx 16)
 showPretty (ListConcat lst1 lst2) i = parenthesize 15 i $ (showPretty lst1 15) ++ " ++ " ++ (showPretty lst2 16)
 showPretty (NegExp x) i = parenthesize 15 i $ " - " ++ (showPretty x 15)
-showPretty (Not l ) i = parenthesize 15 i $  " ! " ++ (showPretty l 15)
+showPretty (Not l ) i = parenthesize 15 i $  " not " ++ (showPretty l 15)
 showPretty (Print x) i = parenthesize 15 i $ " print( " ++ (showPretty x 15) ++ " )"
 --
 --
@@ -125,7 +125,7 @@ showFullyParen (ValString s) = "(" ++ show s ++ ")"
 showFullyParen (And l r) = "(" ++ (showFullyParen l) ++ " && " ++ (showFullyParen r) ++ ")"
 showFullyParen (Or l r) = "(" ++ (showFullyParen l) ++ " || " ++ (showFullyParen r) ++ ")"
 showFullyParen (NegExp x) = "(-" ++ (showFullyParen x) ++ ")"
-showFullyParen (Not a) = "(" ++ " ! " ++ (showFullyParen a) ++ ")"
+showFullyParen (Not a) = "(" ++ " not " ++ (showFullyParen a) ++ ")"
 showFullyParen (Plus l r) = "(" ++ (showFullyParen l) ++ " + " ++ (showFullyParen r) ++ ")"
 showFullyParen (Minus l r) = "(" ++ (showFullyParen l) ++ " - " ++ (showFullyParen r) ++ ")"
 showFullyParen (Mult l r) = "(" ++ (showFullyParen l) ++ " * " ++ (showFullyParen r) ++ ")"
