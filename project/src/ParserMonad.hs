@@ -178,7 +178,7 @@ floatParser = do sgn <- (literal "-") <||> (rep digit)
 spaces :: Parser ()
 spaces =  do rep (sat isSpace)
              rep ((literal "{-") +++ (rep (sat (notSymbol))) +++ (literal "-}") +++ spaces)
-             rep ((literal "--") +++ (rep (sat (/= '\n'))) +++ (literal "\n"))
+             rep ((literal "--") +++ (rep (sat (/= '\n'))) +++ (literal "\n") +++ spaces)
              return ()
 
 
