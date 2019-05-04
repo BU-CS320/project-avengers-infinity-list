@@ -9,7 +9,7 @@ import ParserTest
 
 main =
     do
-        setEnv "TASTY_TIMEOUT" "10s"
+        setEnv "TASTY_TIMEOUT" "40s"
         setEnv "TASTY_QUICKCHECK_TESTS" "2"
         setEnv "TASTY_QUICKCHECK_MAX_SIZE" "50"
         defaultMain testSuite

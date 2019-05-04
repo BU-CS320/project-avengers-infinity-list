@@ -64,7 +64,9 @@ check' (Minus x y) scope warnings =
   (check' x scope warnings) `Set.union` (check' y scope warnings)
 check' (Mult x y) scope warnings =
   (check' x scope warnings) `Set.union` (check' y scope warnings)
-check' (Div x y) scope warnings =
+check' (IntDiv x y) scope warnings =
+  (check' x scope warnings) `Set.union` (check' y scope warnings)
+check' (FloatDiv x y) scope warnings =
   (check' x scope warnings) `Set.union` (check' y scope warnings)
 check' (IntExp x y) scope warnings =
   (check' x scope warnings) `Set.union` (check' y scope warnings)

@@ -27,8 +27,9 @@ arbitrarySizedAst m | otherwise = do l <- arbitrarySizedAst (m `div` 2)  -- get 
                                      x <- elements ["x", "y", "z"]   -- will choose random element from the list
                                      ifAst <- arbitrarySizedIf m
                                      node <- elements [And l r, Or l r, Not l,
-                                                       Plus l r, Minus l r, Mult l r, Div l r,
+                                                       Plus l r, Minus l r, Mult l r, IntDiv l r,
                                                        Equals l r, NotEquals l r, LessThan l r, GreaterThan l r, LessThanOrEquals l r, GreaterThanOrEquals l r,
+
                                                        IntExp l r, FloatExp l r,
 
 
@@ -43,13 +44,14 @@ arbitrarySizedAst m | otherwise = do l <- arbitrarySizedAst (m `div` 2)  -- get 
 e1 = showPretty (Minus (ValInt 100) (Minus (ValInt 2) (ValInt 5))) $  0
 e2 = showPretty (Minus (Minus (ValInt 100) (ValInt 2)) (ValInt 5) ) $  0
 
-e3 = showPretty (Minus (Minus (ValInt 100) (ValInt 2)) (Div (Div (ValInt 100) (ValInt 2)) (ValInt 5) )  ) $ 0
-e4 = showPretty (Div (Minus (ValInt 100) (ValInt 2)) (Div (Div (ValInt 100) (ValInt 2)) (ValInt 5) )  ) $ 0
+e3 = showPretty (Minus (Minus (ValInt 100) (ValInt 2)) (IntDiv (IntDiv (ValInt 100) (ValInt 2)) (ValInt 5) )  ) $ 0
+e4 = showPretty (IntDiv (Minus (ValInt 100) (ValInt 2)) (IntDiv (IntDiv (ValInt 100) (ValInt 2)) (ValInt 5) )  ) $ 0
 e5 = showPretty (((Var "fun") `App` (ValInt 2)) `App` (ValInt 5)) $ 0
 
 e6 = showPretty (Not $ Not $ ((Var "fun") `App` (ValInt 2)) `App` (Not $ ValInt 5)) $ 0
-e7 = showPretty (Equals (Minus (ValInt 100) (ValInt 2)) (Div (Div (ValInt 100) (ValInt 2)) (ValInt 5) )  ) $ 0
+e7 = showPretty (Equals (Minus (ValInt 100) (ValInt 2)) (IntDiv (IntDiv (ValInt 100) (ValInt 2)) (ValInt 5) )  ) $ 0
 
+{-
 example = let x = Var "x"
           in App (Lam "x" ( x `Plus` x))  (ValInt 7)
 example' = run example
@@ -65,6 +67,8 @@ example3' = run example3
 example4 = let x = Var "x"; y = Var "y"
            in (Cons $ Lam "x" (Lam "y" ( x `Plus` y))) $  (Cons ( Lam "x" (Lam "y" ( x `Minus` y))) $ Nil)
 example4' = run example4
+-}
+
 
 ex0 = showPretty  (Mult (Var "a") (Or (Var "b") (Var "c"))) 0
 
@@ -199,11 +203,72 @@ arbitrarySizedIf m = do x <- arbitrarySizedAst (m `div` 3)
                         z <- arbitrarySizedAst (m `div` 3)
                         return $ If x y z
 
+example1 = (Not (Not (Not (Nil))))
+example1' = "! ! ! []"
+
+example2 = (IntDiv (Mult (Not (ValInt 4)) (ValBool True)) (Not (Not Nil)))
+example2' = "!4 * true / ! ! []"
+
+example3 = (If (Lam "x" (Var "x")) (Lam "y" (Var "y")) (Lam "z" (Var "z")))
+example3' = "if \\x -> x then \\y -> y else \\z -> z"
+
+example4 = (Cons (ValChar 'a') (Cons (ValString "b") (Cons (ValInt 3) (Cons (Cons (ValBool True) Nil) (Cons (ValBool False) (Cons (Var "meep") Nil))))))
+example4' = "['a', \"b\", 3, [true], [false, meep]]"
+
+example5 = (GreaterThan (And (GreaterThanOrEquals (Minus (ValInt 1) (ValBool False)) (If (NegExp (ValInt 8)) (ValBool True) (ValBool True))) (LessThan (IntDiv Nil (NegExp (ValInt 7))) (Mult (ValBool False) Nil))) (Let "z" (Equals (App (ValBool True) (ValBool False)) (IntDiv (NegExp (ValInt 5)) (NegExp (ValInt 6)))) (Plus (And (ValBool False) (ValInt 7)) (Cons (NegExp (ValInt 9)) (Cons (NegExp (ValInt 2)) Nil)))))
+example5' = "(1 - false >= (if (-8) then true else true) && [] / (-7) < false * []) > (let z = (true false) == (-5) / (-6) in (false && 7) + ((-9) : (-2)))"
+
+example6 = (Print (Separator (IntExp (ValInt 4) (ValInt 3)) (Lam "x" (FloatDiv (FloatExp (Var "x") (ValFloat 3.0)) (ValFloat 4.0)))))
+example6' = "print(4 ** 3; \\x -> x ^ 3.0 / 4.0)"
+
+example7 = (Let "x" (ValInt 5) (If (Equals (ValChar 'a') (ValChar 'b')) (Print (Var "x")) (FloatDiv (ValFloat 1.0) (ValFloat 0.0))))
+example7' = "let x = 5 in if ('a' == 'b') then print(x) else 1.0/0.0"
+
+example8 = (Lam "x" (If (Var "x") (ValBool True) (Cons (Var "y") Nil)))
+example8' = "\\x -> if x then true else y : []"
+
+example9 = (Separator (Print (NegExp (ValInt 5))) (Let "x" (NegExp (ValInt 10)) (Separator (Mult (Var "x") (ValInt 4)) (ValString "meep"))))
+example9' = "print(-5); let x = (-10) in x * 4; \"meep\""
+
+example10 = Print (App (App (Var "map") (Lam "x" (Plus (Var "x") (ValInt 10)))) (Cons (ValInt 1) (Cons (ValInt 2) (Cons (ValInt 3) (Cons (ValInt 4) (Cons (ValInt 5) Nil))))))
+example10' = "print(map (\\x -> x+10) (1:2:3:4:5))"
+
 tests = testGroup "parser Test"
       [
-      testProperty "parse should return the same AST when fully parenthesized" $
+        testCase "showPretty tests: " $
+          do
+            assertEqual example1' (Just (example1, "")) (parse parser (showPretty example1 0))
+            assertEqual example2' (Just (example2, "")) (parse parser (showPretty example2 0))
+            assertEqual example3' (Just (example3, "")) (parse parser (showPretty example3 0))
+            assertEqual example4' (Just (example4, "")) (parse parser (showPretty example4 0))
+            assertEqual example5' (Just (example5, "")) (parse parser (showPretty example5 0))
+            assertEqual example6' (Just (example6, "")) (parse parser (showPretty example6 0))
+            assertEqual example7' (Just (example7, "")) (parse parser (showPretty example7 0))
+            assertEqual example8' (Just (example8, "")) (parse parser (showPretty example8 0))
+            assertEqual example9' (Just (example9, "")) (parse parser (showPretty example9 0))
+            assertEqual example10' (Just (example10, "")) (parse parser (showPretty example10 0)),
+
+        testCase "showFullyParen tests: " $
+          do
+            assertEqual example1' (Just (example1, "")) (parse parser (showFullyParen example1))
+            assertEqual example2' (Just (example2, "")) (parse parser (showFullyParen example2))
+            assertEqual example3' (Just (example3, "")) (parse parser (showFullyParen example3))
+            assertEqual example4' (Just (example4, "")) (parse parser (showFullyParen example4))
+            assertEqual example5' (Just (example5, "")) (parse parser (showFullyParen example5))
+            assertEqual example6' (Just (example6, "")) (parse parser (showFullyParen example6))
+            assertEqual example7' (Just (example7, "")) (parse parser (showFullyParen example7))
+            assertEqual example8' (Just (example8, "")) (parse parser (showFullyParen example8))
+            assertEqual example9' (Just (example9, "")) (parse parser (showFullyParen example9))
+            assertEqual example10' (Just (example10, "")) (parse parser (showFullyParen example10))
+
+
+      ]
+
+
+      {-testProperty "parse should return the same AST when fully parenthesized" $
                   ((\ x -> Just (x , "") == (parse parser $ showFullyParen x)) :: Ast -> Bool),
 
       testProperty "parse should return the same AST when pretty printed" $
                   ((\ x -> Just (x , "") == (parse parser $ showPretty x 0)) :: Ast -> Bool)
-      ]
+      -}
+      
