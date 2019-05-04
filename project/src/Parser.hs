@@ -24,7 +24,7 @@ seps' = do x <- (token cons)
            return (Separator x y)
 
 cons :: Parser Ast
-cons = cons'' <|> cons' <|> orExpr
+cons = brackets <|> cons' <|> orExpr
 
 --right associative
 cons' :: Parser Ast
@@ -35,14 +35,24 @@ cons' = do x <- (token orExpr)
                      Nil        -> return (Cons x y)
                      _          -> return (Cons x (Cons y Nil))
 
-cons'' :: Parser Ast
-cons'' = do token $ literal "["
-            x <- (token orExpr)
-            token $ literal ","
-            y <- (token cons)
-            case y of (Cons _ _) -> return (Cons x y)
-                      _          -> return (Cons x (Cons y Nil))
+brackets :: Parser Ast
+brackets = do (token $ literal "[")
+              x <- cons''
+              (token $ literal "]")
+              case x of (Cons _ _) -> return x
+                        _    -> return (Cons x Nil)
 
+
+cons'' :: Parser Ast
+cons'' = commaParser <|> orExpr
+
+commaParser :: Parser Ast
+commaParser = do x <- token orExpr
+                 token $ literal ","
+                 y <- token cons'' <|> nil
+                 case y of (Cons _ _) -> return (Cons x y)
+                           Nil        -> return (Cons x y)
+                           _          -> return (Cons x (Cons y Nil))
 
 orExpr :: Parser Ast
 orExpr = withInfix andExpr [("||", Or)]
@@ -57,10 +67,10 @@ addSubExpr :: Parser Ast
 addSubExpr = withInfix multDivExpr [("+", Plus),("-", Minus)]
 
 multDivExpr :: Parser Ast
-multDivExpr = withInfix expExpr [("*", Mult), ("/", Div)]
+multDivExpr = withInfix expExpr [("*", Mult), ("//", IntDiv), ("/", FloatDiv)]
 
 expExpr :: Parser Ast
-expExpr = withInfix negExp' [("**", IntOrFloatExp)]
+expExpr = withInfix negExp' [("**", IntExp), ("^", FloatExp)]
 
 negExp :: Parser Ast
 negExp = do token (literal "-")
