@@ -41,6 +41,7 @@ data Ast = ValBool Bool
          | Nil
          | Cons Ast Ast
          | ListIndex Ast Ast
+         | Concat Ast Ast
 
          | If Ast Ast Ast
          | Let String Ast Ast

@@ -308,6 +308,14 @@ eval (Cons x y) =
      case (y') of
        Ls list -> return (Ls (x':list))
        _ -> err $ "Second term (" ++ (showPretty y 0) ++ ") must be a list"
+eval (Concat x y) =
+  do x' <- eval x
+     y' <- eval y
+     case (x', y') of
+       (Ls x'', Ls y'') -> return (Ls (x'' ++ y''))
+       (Ls x'', _) -> err $ "TypeMismatch: second argument (" ++ (showPretty y 0) ++ ") must be a list"
+       (_, Ls y'') -> err $ "TypeMismatch: first argument (" ++ (showPretty x 0) ++ ") must be a list"
+       (_, _) -> err $ "TypeMismatch: both arguments (" ++ (showPretty x 0) ++ "), (" ++ (showPretty y 0) ++ ") must be lists"
 eval (ListIndex lst idx) =
   do lst' <- evalList lst
      idx' <- evalInt idx
