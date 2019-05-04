@@ -283,6 +283,12 @@ eval (FloatDiv x y) =
      case (x', y') of
        (Left f1, Left f2) -> if f2 == 0.0 then err "Error: Division-by-Zero" else return (F (f1 / f2))
        _ -> err "TypeMismatch: Can only use / with Float types"
+eval (Mod x y) =
+  do x' <- evalNum x
+     y' <- evalNum y
+     case (x', y') of
+       (Right i1, Right i2) -> if i2 == 0 then err "Error: Mod-by-Zero is undefined" else return (I (i1 `mod`i2))
+       _ -> err "TypeMismatch: Can only use % with Integer types"
 eval (IntExp b e) =
   do b' <- evalNum b
      e' <- evalNum e
