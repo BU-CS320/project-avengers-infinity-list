@@ -2,14 +2,13 @@ module ParserTest where
 
 import Test.Tasty (testGroup)
 import Test.Tasty.HUnit (assertEqual, assertBool, testCase)
-import Test.Tasty.QuickCheck 
+import Test.Tasty.QuickCheck
 
 --import Lang (showFullyParen, showPretty, Ast(..))
 import ParserMonad (parse)
 import Ast
 import Parser
 import Eval
---import LangParser (parser)
 import HelpShow
 -- provide tests that show your parser works
 
@@ -27,9 +26,9 @@ arbitrarySizedAst m | otherwise = do l <- arbitrarySizedAst (m `div` 2)  -- get 
                                      x <- elements ["x", "y", "z"]   -- will choose random element from the list
                                      ifAst <- arbitrarySizedIf m
                                      node <- elements [And l r, Or l r, Not l,
-                                                       Plus l r, Minus l r, Mult l r, Div l r,
+                                                       Plus l r, Minus l r, Mult l r, IntDiv l r, FloatDiv l r,
                                                        Equals l r, NotEquals l r, LessThan l r, GreaterThan l r, LessThanOrEquals l r, GreaterThanOrEquals l r,
-                                                       IntOrFloatExp l r,
+                                                       IntExp l r, FloatExp l r,
 
 
                                                        Cons l Nil,
@@ -43,17 +42,17 @@ arbitrarySizedAst m | otherwise = do l <- arbitrarySizedAst (m `div` 2)  -- get 
 e1 = showPretty (Minus (ValInt 100) (Minus (ValInt 2) (ValInt 5))) $  0
 e2 = showPretty (Minus (Minus (ValInt 100) (ValInt 2)) (ValInt 5) ) $  0
 
-e3 = showPretty (Minus (Minus (ValInt 100) (ValInt 2)) (Div (Div (ValInt 100) (ValInt 2)) (ValInt 5) )  ) $ 0
-e4 = showPretty (Div (Minus (ValInt 100) (ValInt 2)) (Div (Div (ValInt 100) (ValInt 2)) (ValInt 5) )  ) $ 0
+e3 = showPretty (Minus (Minus (ValInt 100) (ValInt 2)) (IntDiv (IntDiv (ValInt 100) (ValInt 2)) (ValInt 5) )  ) $ 0
+e4 = showPretty (IntDiv (Minus (ValInt 100) (ValInt 2)) (IntDiv (IntDiv (ValInt 100) (ValInt 2)) (ValInt 5) )  ) $ 0
 e5 = showPretty (((Var "fun") `App` (ValInt 2)) `App` (ValInt 5)) $ 0
 
 e6 = showPretty (Not $ Not $ ((Var "fun") `App` (ValInt 2)) `App` (Not $ ValInt 5)) $ 0
-e7 = showPretty (Equals (Minus (ValInt 100) (ValInt 2)) (Div (Div (ValInt 100) (ValInt 2)) (ValInt 5) )  ) $ 0
+e7 = showPretty (Equals (Minus (ValInt 100) (ValInt 2)) (IntDiv (IntDiv (ValInt 100) (ValInt 2)) (ValInt 5) )  ) $ 0
 
 example = let x = Var "x"
           in App (Lam "x" ( x `Plus` x))  (ValInt 7)
 example' = run example
-      
+
 example2 = let x = Var "x"; y = Var "y"
            in ((Lam "x" (Lam "y" ( x `Plus` y))) `App` (ValInt 7)) `App` (ValInt 4)
 example2' = run example2
