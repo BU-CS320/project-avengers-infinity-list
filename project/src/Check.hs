@@ -89,9 +89,14 @@ check' (Cons x y) scope warnings =
 check' (Nil) _ warnings = warnings
 check' (ListIndex lst idx) scope warnings =
   (check' lst scope warnings) `Set.union` (check' idx scope warnings)
+check' (ListConcat lst1 lst2) scope warnings =
+  (check' lst1 scope warnings) `Set.union` (check' lst2 scope warnings)
 check' (App x y) scope warnings =
   (check' x scope warnings) `Set.union` (check' y scope warnings)
 check' (Separator x y) scope warnings =
   (check' x scope warnings) `Set.union` (check' y scope warnings)
 check' (Print x) scope warnings = check' x scope warnings
+check' (Compose x y) scope warnings =
+  (check' x scope warnings) `Set.union` (check' y scope warnings)
+
 

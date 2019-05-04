@@ -1,6 +1,6 @@
 {-|
 Module: Exec
-Description: Holds the exec function, as well as parseError and runtimeError catching mechanisms.  
+Description: Holds the exec function, as well as parseError and runtimeError catching mechanisms.
 -}
 
 module Exec where
