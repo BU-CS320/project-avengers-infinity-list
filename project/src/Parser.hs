@@ -11,7 +11,7 @@ import EnvUnsafeLog
 -- | parser for the language
 parser :: Parser Ast
 parser = apps
-
+-- | keywords that cannot be used as variable names or other sensitive strings
 keywords = ["if","then","else", "let", "in", "true","false"]
 -- | Parser for the App function using withInfix. Linked to hierarchy step in AST seps
 apps :: Parser Ast
