@@ -156,7 +156,6 @@ ifParser = do token $ literal "if"
               case2 <- parser
               return (If condition case1 case2)
 
-
 -- | parses let = in statements, which must take in a "let" for the first value, where the next parse value is the definitions
 letParser :: Parser Ast
 letParser = do token $ literal "let"
@@ -202,3 +201,4 @@ parens = do token $ literal "("
             ast <- parser
             token $ literal ")"
             return ast
+
