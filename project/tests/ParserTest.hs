@@ -231,6 +231,12 @@ example9' = "print(-5); let x = (-10) in x * 4; \"meep\""
 example10 = Print (App (App (Var "map") (Lam "x" (Plus (Var "x") (ValInt 10)))) (Cons (ValInt 1) (Cons (ValInt 2) (Cons (ValInt 3) (Cons (ValInt 4) (Cons (ValInt 5) Nil))))))
 example10' = "print(map (\\x -> x+10) (1:2:3:4:5))"
 
+example11 = (Lam "x" (Lam "y" (Lam "z" (Plus (Var "x") (Plus (Var "y") (Var "z"))))))
+example11' = "\\ x y z -> x + y + z"
+
+example12 = (Let "x" (ValInt 5) (Let "y" (ValInt 9) (Let "z" (ValInt 3) ((Var "x") `Plus` (Var "y") `Plus` (Var "z")))))
+example12' = "let x = 5, y = 9, z = 3 in x + y + z"
+
 tests = testGroup "parser Test"
       [
         testCase "showPretty tests: " $
@@ -244,7 +250,9 @@ tests = testGroup "parser Test"
             assertEqual example7' (Just (example7, "")) (parse parser (showPretty example7 0))
             assertEqual example8' (Just (example8, "")) (parse parser (showPretty example8 0))
             assertEqual example9' (Just (example9, "")) (parse parser (showPretty example9 0))
-            assertEqual example10' (Just (example10, "")) (parse parser (showPretty example10 0)),
+            assertEqual example10' (Just (example10, "")) (parse parser (showPretty example10 0))
+            assertEqual example11' (Just (example11, "")) (parse parser (showPretty example11 0))
+            assertEqual example12' (Just (example12, "")) (parse parser (showPretty example12 0)),
 
         testCase "showFullyParen tests: " $
           do
@@ -257,9 +265,11 @@ tests = testGroup "parser Test"
             assertEqual example7' (Just (example7, "")) (parse parser (showFullyParen example7))
             assertEqual example8' (Just (example8, "")) (parse parser (showFullyParen example8))
             assertEqual example9' (Just (example9, "")) (parse parser (showFullyParen example9))
-            assertEqual example10' (Just (example10, "")) (parse parser (showFullyParen example10))
-
-
+            assertEqual example10' (Just (example10, "")) (parse parser (showFullyParen example10)),
+        testCase "showFullyParen tests for longer expressions (avoids time out from recusion): " $
+          do
+            assertEqual example11' (Just (example11, "")) (parse parser (showFullyParen example11))
+            assertEqual example12' (Just (example12, "")) (parse parser (showFullyParen example12))
       ]
 
 
