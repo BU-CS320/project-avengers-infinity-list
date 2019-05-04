@@ -23,7 +23,9 @@ data Ast = ValBool Bool
          | ValChar Char
          | ValInt Integer
          | ValFloat Float
-         | Plus Ast Ast | Minus Ast Ast | Mult Ast Ast | Div Ast Ast
+         | Plus Ast Ast | Minus Ast Ast | Mult Ast Ast
+         | IntDiv Ast Ast
+         | FloatDiv Ast Ast
          | IntExp Ast Ast
          | FloatExp Ast Ast
 
@@ -94,7 +96,8 @@ showPretty (GreaterThan l r) i = parenthesize 10 i $ (showPretty l 10) ++ " > " 
 showPretty (Minus l r) i = parenthesize 11 i $ (showPretty l 11) ++ " - " ++ (showPretty r 12)
 showPretty (Plus l r) i = parenthesize 11 i $ (showPretty l 11) ++ " + " ++ (showPretty r 12)
 showPretty (Mult l r) i = parenthesize 13 i $ (showPretty l 13) ++ " * " ++ (showPretty r 14)
-showPretty (Div l r) i = parenthesize 13 i $ (showPretty l 13) ++ " / " ++ (showPretty r 14)
+showPretty (IntDiv l r) i = parenthesize 13 i $ (showPretty l 13) ++ " // " ++ (showPretty r 14)
+showPretty (FloatDiv l r) i = parenthesize 13 i $ (showPretty l 13) ++ " / " ++ (showPretty r 14)
 showPretty (IntExp b e) i = parenthesize 14 i $ (showPretty b 14) ++ " ** " ++ (showPretty e 15)
 showPretty (FloatExp b e) i = parenthesize 14 i $ (showPretty b 14) ++ " ^ " ++ (showPretty e 15)
 showPretty (ListIndex lst idx) i = parenthesize 15 i $ (showPretty lst 15) ++ " !! " ++ (showPretty idx 16)
@@ -122,7 +125,8 @@ showFullyParen (Not a) = "(" ++ " ! " ++ (showFullyParen a) ++ ")"
 showFullyParen (Plus l r) = "(" ++ (showFullyParen l) ++ " + " ++ (showFullyParen r) ++ ")"
 showFullyParen (Minus l r) = "(" ++ (showFullyParen l) ++ " - " ++ (showFullyParen r) ++ ")"
 showFullyParen (Mult l r) = "(" ++ (showFullyParen l) ++ " * " ++ (showFullyParen r) ++ ")"
-showFullyParen (Div l r) = "(" ++ (showFullyParen l) ++ " / " ++ (showFullyParen r) ++ ")"
+showFullyParen (IntDiv l r) = "(" ++ (showFullyParen l) ++ " // " ++ (showFullyParen r) ++ ")"
+showFullyParen (FloatDiv l r) = "(" ++ (showFullyParen l) ++ " / " ++ (showFullyParen r) ++ ")"
 showFullyParen (IntExp b e) = "(" ++ (showFullyParen b) ++ " ** " ++ (showFullyParen e) ++ ")"
 showFullyParen (FloatExp b e) = "(" ++ (showFullyParen b) ++ " ^ " ++ (showFullyParen e) ++ ")"
 showFullyParen (If b t e) = "(if " ++ (showFullyParen b) ++ " then " ++ (showFullyParen t) ++ " else " ++ (showFullyParen e) ++ ")"

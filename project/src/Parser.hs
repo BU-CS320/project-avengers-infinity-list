@@ -67,7 +67,7 @@ addSubExpr :: Parser Ast
 addSubExpr = withInfix multDivExpr [("+", Plus),("-", Minus)]
 
 multDivExpr :: Parser Ast
-multDivExpr = withInfix expExpr [("*", Mult), ("/", Div), ("//", Div)]
+multDivExpr = withInfix expExpr [("*", Mult), ("//", IntDiv), ("/", FloatDiv)]
 
 expExpr :: Parser Ast
 expExpr = withInfix negExp' [("**", IntExp), ("^", FloatExp)]

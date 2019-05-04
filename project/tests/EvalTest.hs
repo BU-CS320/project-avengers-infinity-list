@@ -2,7 +2,7 @@ module EvalTest where
 
 import Test.Tasty (testGroup)
 import Test.Tasty.HUnit (assertEqual, assertBool, testCase)
---import Test.Tasty.QuickCheck 
+--import Test.Tasty.QuickCheck
 
 import Ast
 import Eval
