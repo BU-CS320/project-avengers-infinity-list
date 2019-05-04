@@ -73,14 +73,14 @@ tests = testGroup "EvalTest"
       assertEqual "2 - 4 =? "    ((Ok $ I (-2)),[]) (run (Minus (ValInt 2) (ValInt 4)))
       assertEqual "3 * 2 =? "    ((Ok $ I 6),[])    (run (Mult (ValInt 3) (ValInt 2)))
       assertEqual "3 // 2 =? "   ((Ok $ I 1),[])    (run (Div (ValInt 3) (ValInt 2)))
-      assertEqual "2 ** 4 =? "   ((Ok $ I 16),[])   (run (IntOrFloatExp (ValInt 2) (ValInt 4))),
+      assertEqual "2 ** 4 =? "   ((Ok $ I 16),[])   (run (IntExp (ValInt 2) (ValInt 4))),
   testCase "Floating-Point Arithmetic: " $
     do
       assertEqual "2.3 + 4.1 =? "    ((Ok $ F 6.3999996),[])    (run (Plus (ValFloat 2.3) (ValFloat 4.1)))
       assertEqual "2.0 - 4.0 =? "    ((Ok $ F (-2.0)),[]) (run (Minus (ValFloat 2.0) (ValFloat 4.0)))
       assertEqual "3.0 * 2.0 =? "    ((Ok $ F 6.0),[])    (run (Mult (ValFloat 3.0) (ValFloat 2.0)))
       assertEqual "3.0 / 2.0 =? "    ((Ok $ F 1.5),[])    (run (Div (ValFloat 3.0) (ValFloat 2.0)))
-      assertEqual "2.0 ** 4.0 =? "   ((Ok $ F 16.0),[])   (run (IntOrFloatExp (ValFloat 2.0) (ValFloat 4.0))),
+      assertEqual "2.0 ** 4.0 =? "   ((Ok $ F 16.0),[])   (run (FloatExp (ValFloat 2.0) (ValFloat 4.0))),
   testCase "Comparison Operators: " $
     do
       assertEqual "3 == 3 =? "   ((Ok $ B True),[]) (run (Equals (ValInt 3) (ValInt 3)))
