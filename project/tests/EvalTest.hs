@@ -140,18 +140,42 @@ tests = testGroup "EvalTest"
       assertEqual "2.0 - 4.0 =? "    ((Ok $ F (-2.0)),[]) (run (Minus (ValFloat 2.0) (ValFloat 4.0)))
       assertEqual "3.0 * 2.0 =? "    ((Ok $ F 6.0),[])    (run (Mult (ValFloat 3.0) (ValFloat 2.0)))
       assertEqual "3.0 / 2.0 =? "    ((Ok $ F 1.5),[])    (run (FloatDiv (ValFloat 3.0) (ValFloat 2.0)))
-      assertEqual "2.0 ** 4.0 =? "   ((Ok $ F 16.0),[])   (run (FloatExp (ValFloat 2.0) (ValFloat 4.0))),
+      assertEqual
+        "10 / 4.0 =? "
+        ((Error "TypeMismatch: Can only use / with Float types"),[])
+        (run (FloatDiv (ValInt 10) (ValFloat 4.0)))
+      assertEqual
+        "10.0 / 0.0 =? "
+        ((Error "Error: Division-by-Zero"),[])
+        (run (FloatDiv (ValFloat 10.0) (ValFloat 0.0)))
+      assertEqual "2.0 ^ 4.0 =? "   ((Ok $ F 16.0),[])   (run (FloatExp (ValFloat 2.0) (ValFloat 4.0))),
   testCase "Comparison Operators: " $
     do
       assertEqual "3 == 3 =? "   ((Ok $ B True),[]) (run (Equals (ValInt 3) (ValInt 3)))
       assertEqual "3 != 4 =? "   ((Ok $ B True),[])  (run (NotEquals (ValInt 3) (ValInt 4)))
       assertEqual "4 < 5 =? "    ((Ok $ B True),[])  (run (LessThan (ValInt 4) (ValInt 5)))
+      assertEqual
+        "4 < 5.0 =? "
+        ((Error "Types don't match. Can only compare values of same type."),[])
+        (run (LessThan (ValInt 4) (ValFloat 5.0)))
       assertEqual "5 < 4 =? "    ((Ok $ B False),[]) (run (LessThan (ValInt 5) (ValInt 4)))
       assertEqual "4 > 5 =? "    ((Ok $ B False),[]) (run (GreaterThan (ValInt 4) (ValInt 5)))
+      assertEqual
+        "4 > 5.0 =? "
+        ((Error "Types don't match. Can only compare values of same type."),[])
+        (run (GreaterThan (ValInt 4) (ValFloat 5.0)))
       assertEqual "5 > 4 =? "    ((Ok $ B True),[])  (run (GreaterThan (ValInt 5) (ValInt 4)))
       assertEqual "4 <= 5 =? "   ((Ok $ B True),[])  (run (LessThanOrEquals (ValInt 4) (ValInt 5)))
+      assertEqual
+        "4 <= 5.0 =? "
+        ((Error "Types don't match. Can only compare values of same type."),[])
+        (run (LessThanOrEquals (ValInt 4) (ValFloat 5.0)))
       assertEqual "5 <= 4 =? "   ((Ok $ B False),[]) (run (LessThanOrEquals (ValInt 5) (ValInt 4)))
       assertEqual "4 >= 5 =? "   ((Ok $ B False),[]) (run (GreaterThanOrEquals (ValInt 4) (ValInt 5)))
+      assertEqual
+        "4 >= 5.0 =? "
+        ((Error "Types don't match. Can only compare values of same type."),[])
+        (run (GreaterThanOrEquals (ValInt 4) (ValFloat 5.0)))
       assertEqual "5 >= 4 =? "   ((Ok $ B True),[])  (run (GreaterThanOrEquals (ValInt 5) (ValInt 4))),
   testCase "Boolean Operators: " $
     do
