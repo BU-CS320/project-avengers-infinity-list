@@ -177,9 +177,10 @@ floatParser = do sgn <- (literal "-") <||> (rep digit)
 -- | parse spaces, throw them away
 spaces :: Parser ()
 spaces =  do rep (sat isSpace)
-             rep ((literal "{-") +++ (rep (sat (notSymbol))) +++ (literal "-}"))
-             rep ((literal "--") +++ (rep (sat (/= '\n'))) +++ (literal "\n"))
+             rep ((literal "{-") +++ (rep (sat (notSymbol))) +++ (literal "-}") +++ spaces)
+             rep ((literal "--") +++ (rep (sat (/= '\n'))) +++ (literal "\n") +++ spaces)
              return ()
+
 
 -- | Parses the not symbol
 notSymbol  :: Char -> Bool
