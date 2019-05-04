@@ -22,6 +22,7 @@ Haddock-style comments                          (5pts)
 Multiple argument lambdas                       (5pts)
 Multiple argument let                           (5pts)
 Continuous integration setup (Travis)           (5pts)
+-------------------------------------------------------
 TOTAL:                                          (25pts)
 </pre>
 
