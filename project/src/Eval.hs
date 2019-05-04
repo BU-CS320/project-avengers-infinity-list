@@ -114,43 +114,43 @@ evalNum a = do a' <- eval a
                case a' of
                  F f -> return (Left f)
                  I i -> return (Right i)
-                 _   -> err "Not a number"
+                 _   -> err $ (showPretty a 0) ++ " is not a number"
 -- | helper function for eval Int. Will determine if a Val is an integer, catches and errors otherwise
 evalInt :: Ast -> EnvUnsafeLog Env String Integer
 evalInt a = do a' <- eval a
                case a' of
                  I i -> return i
-                 _ -> err "Not an int"
+                 _ -> err $ (showPretty a 0) ++ " is not an int"
 -- | helper function for eval Float. Will determine if a Val is a float, catches and errors otherwise
 evalFloat :: Ast -> EnvUnsafeLog Env String Float
 evalFloat a = do a' <- eval a
                  case a' of
                    F f -> return f
-                   _ -> err "Not a float"
+                   _ -> err $ (showPretty a 0) ++ " is not a float"
 -- | helper function for eval char. Will determine if a Val is a Char, catches and errors otherwise
 evalChar :: Ast -> EnvUnsafeLog Env String Char
 evalChar a = do a' <- eval a
                 case a' of
                   C c -> return c
-                  _ -> err "Not an int"
+                  _ -> err $ (showPretty a 0) ++ " is not a char"
 -- | helper function for eval bool. Will determine if a Val is a Bool, catches and errors otherwise
 evalBool :: Ast -> EnvUnsafeLog Env String Bool
 evalBool a = do a' <- eval a
                 case a' of
                   B b -> return b
-                  _ -> err "Not a bool"
+                  _ -> err $ (showPretty a 0) ++ " is not a bool"
 -- | helper function for eval list. Will determine if a Val is a List, catches and errors otherwise
 evalList :: Ast -> EnvUnsafeLog Env String [Val]
 evalList a = do a' <- eval a
                 case a' of
                   Ls x -> return x
-                  _ -> err "Not a list"
+                  _ -> err $ (showPretty a 0) ++ " is not a list"
 -- | helper function for functions. Will determine if a Val is a function, catches and errors otherwise.
 evalFun :: Ast -> EnvUnsafeLog Env String (Val -> (Unsafe Val, [String]))
 evalFun a = do a' <- eval a
                case a' of
                  Fun a' -> return a'
-                 _ -> err "Not a function"
+                 _ -> err $ (showPretty a 0) ++ " is not a function"
 -- | helper function for eval Print. Will add the string to the printBuffer, and return the EnvUnsafeLog with the buffer
 evalPrint :: Ast -> EnvUnsafeLog Env String Val
 evalPrint a = do a' <- eval a
@@ -253,24 +253,24 @@ eval (Plus x y) =
      case (x', y') of
        (Left f1, Left f2)   -> return (F (f1 + f2))
        (Right i1, Right i2) -> return (I (i1 + i2))
-       (Right _, Left _)    -> err "TypeMismatch: Cannot add integer and float"
-       (Left _, Right _)    -> err "TypeMismatch: Cannot add float and integer"
+       (Right _, Left _)    -> err $ "TypeMismatch: Cannot add integer " ++ (showPretty x 0) ++ " and float " ++ (showPretty y 0)
+       (Left _, Right _)    -> err $ "TypeMismatch: Cannot add float " ++ (showPretty x 0) ++ " and integer " ++ (showPretty y 0)
 eval (Minus x y) =
   do x' <- evalNum x
      y' <- evalNum y
      case (x', y') of
        (Left f1, Left f2)   -> return (F (f1 - f2))
        (Right i1, Right i2) -> return (I (i1 - i2))
-       (Right _, Left _)    -> err "TypeMismatch: Cannot subtract integer and float"
-       (Left _, Right _)    -> err "TypeMismatch: Cannot subtract float and integer"
+       (Right _, Left _)    -> err $ "TypeMismatch: Cannot subtract integer " ++ (showPretty x 0) ++ " and float " ++ (showPretty y 0)
+       (Left _, Right _)    -> err $ "TypeMismatch: Cannot subtract float " ++ (showPretty x 0) ++ " and integer " ++ (showPretty y 0)
 eval (Mult x y) =
   do x' <- evalNum x
      y' <- evalNum y
      case (x', y') of
        (Left f1, Left f2)   -> return (F (f1 * f2))
        (Right i1, Right i2) -> return (I (i1 * i2))
-       (Right _, Left _)    -> err "TypeMismatch: Cannot multiply integer and float"
-       (Left _, Right _)    -> err "TypeMismatch: Cannot multiply float and integer"
+       (Right _, Left _)    -> err $ "TypeMismatch: Cannot subtract integer " ++ (showPretty x 0) ++ " and float " ++ (showPretty y 0)
+       (Left _, Right _)    -> err $ "TypeMismatch: Cannot multiply float " ++ (showPretty x 0) ++ " and integer " ++ (showPretty y 0)
 eval (IntDiv x y) =
   do x' <- evalNum x
      y' <- evalNum y
@@ -301,7 +301,7 @@ eval (Cons x y) =
      y' <- eval y
      case (y') of
        Ls list -> return (Ls (x':list))
-       _ -> err "Second term must be a list"
+       _ -> err $ "Second term (" ++ (showPretty y 0) ++ ") must be a list"
 eval (ListIndex lst idx) =
   do lst' <- evalList lst
      idx' <- evalInt idx
@@ -313,7 +313,7 @@ eval (If condition ifTrue ifFalse) =
      case (condition') of
        B True -> eval ifTrue
        B False -> eval ifFalse
-       _ -> err "Condition must evaluate to a boolean"
+       _ -> err $ "Condition (" ++ (showPretty condition 0) ++ ") must evaluate to a boolean"
 eval (Separator ast1 ast2) =
   do ast1' <- eval ast1
      ast2' <- eval ast2
@@ -329,7 +329,7 @@ eval (App x y) =
      y' <- eval y
      case (x' y') of
        (Ok val, lst) -> return val
-       _ -> err "Invalid function argument"
+       _ -> err $ "Function argument (" ++ (showPretty y 0) ++ ") cannot be another function"
 eval (Lam x bod) =
   do env <- getEnv
      return (Fun (\v -> runEnvUnsafe (eval bod) (Map.insert x v env)))
