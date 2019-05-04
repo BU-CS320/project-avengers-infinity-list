@@ -181,6 +181,11 @@ spaces =  do rep (sat isSpace)
              rep ((literal "--") +++ (rep (sat (/= '\n'))) +++ (literal "\n") +++ spaces)
              return ()
 
+-- | Parses continuous strings
+stringParser :: Parser String
+stringParser = do x <- rep (sat (/= '\"'))
+                  token $ literal "\""
+                  return x
 
 -- | Parses the not symbol
 notSymbol  :: Char -> Bool

@@ -6,6 +6,7 @@ import System.Environment
 import CheckTest
 import EvalTest
 import ParserTest
+import ExecTest
 
 main =
     do

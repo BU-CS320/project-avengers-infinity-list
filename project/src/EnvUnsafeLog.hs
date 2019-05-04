@@ -30,6 +30,8 @@ getEnv = EnvUnsafeLog $ \ env -> (Ok env, [])
 printBuffer :: String -> EnvUnsafeLog e String ()
 printBuffer s = EnvUnsafeLog $ \ _ -> (Ok (), [s])
 
+addToBuffer :: [String] -> EnvUnsafeLog e String ()
+addToBuffer ss = EnvUnsafeLog $ \ _ -> (Ok (), ss)
 
 instance Functor (EnvUnsafeLog e l) where
   -- | fmap :: (a -> b) -> EnvUnsafe a -> EnvUnsafe b
