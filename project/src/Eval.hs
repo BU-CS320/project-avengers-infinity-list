@@ -274,14 +274,18 @@ eval (Div x y) = --not changing this one because div by 0
          F yFloat -> return (F (xFloat/yFloat))
          _ -> err "Invalid types"
        _ -> err "Invalid types"
-eval (IntOrFloatExp b e) =
+eval (IntExp b e) =
   do b' <- evalNum b
      e' <- evalNum e
-     case (b',e') of
-       (Left f1, Left f2) -> return (F (f1 ** f2))
+     case (b', e') of
        (Right i1, Right i2) -> return (I (i1 ^ i2))
-       (Right _, Left _) -> err "Type Mismatch: Cannot exponentiate integer to a float"
-       (Left _, Right _) -> err "Type Mismatch: Cannot exponentiate float to an integer"
+       _ -> err "Type Mismatch: Can only use ** with Integer types"
+eval (FloatExp b e) =
+  do b' <- evalNum b
+     e' <- evalNum e
+     case (b', e') of
+       (Left f1, Left f2) -> return (F (f1 ** f2))
+       _ -> err "Type Mismatch: Can only use ^ with Float types"
 eval (Nil) = return (Ls [])
 eval (Cons x y) =
   do x' <- eval x

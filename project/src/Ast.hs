@@ -18,7 +18,8 @@ data Ast = ValBool Bool
          | ValInt Integer
          | ValFloat Float
          | Plus Ast Ast | Minus Ast Ast | Mult Ast Ast | Div Ast Ast
-         | IntOrFloatExp Ast Ast
+         | IntExp Ast Ast
+         | FloatExp Ast Ast
 
          | ValString String
 
@@ -85,7 +86,8 @@ showPretty (Minus l r) i = parenthesize 11 i $ (showPretty l 11) ++ " - " ++ (sh
 showPretty (Plus l r) i = parenthesize 11 i $ (showPretty l 11) ++ " + " ++ (showPretty r 12)
 showPretty (Mult l r) i = parenthesize 13 i $ (showPretty l 13) ++ " * " ++ (showPretty r 14)
 showPretty (Div l r) i = parenthesize 13 i $ (showPretty l 13) ++ " / " ++ (showPretty r 14)
-showPretty (IntOrFloatExp b e) i = parenthesize 14 i $ (showPretty b 14) ++ " ** " ++ (showPretty e 15)
+showPretty (IntExp b e) i = parenthesize 14 i $ (showPretty b 14) ++ " ** " ++ (showPretty e 15)
+showPretty (FloatExp b e) i = parenthesize 14 i $ (showPretty b 14) ++ " ^ " ++ (showPretty e 15)
 showPretty (ListIndex lst idx) i = parenthesize 15 i $ (showPretty lst 15) ++ " !! " ++ (showPretty idx 16)
 showPretty (NegExp x) i = parenthesize 15 i $ " - " ++ (showPretty x 15)
 showPretty (Not l ) i = parenthesize 15 i $  " ! " ++ (showPretty l 15)
@@ -110,7 +112,8 @@ showFullyParen (Plus l r) = "(" ++ (showFullyParen l) ++ " + " ++ (showFullyPare
 showFullyParen (Minus l r) = "(" ++ (showFullyParen l) ++ " - " ++ (showFullyParen r) ++ ")"
 showFullyParen (Mult l r) = "(" ++ (showFullyParen l) ++ " * " ++ (showFullyParen r) ++ ")"
 showFullyParen (Div l r) = "(" ++ (showFullyParen l) ++ " / " ++ (showFullyParen r) ++ ")"
-showFullyParen (IntOrFloatExp b e) = "(" ++ (showFullyParen b) ++ " ** " ++ (showFullyParen e) ++ ")"
+showFullyParen (IntExp b e) = "(" ++ (showFullyParen b) ++ " ** " ++ (showFullyParen e) ++ ")"
+showFullyParen (FloatExp b e) = "(" ++ (showFullyParen b) ++ " ^ " ++ (showFullyParen e) ++ ")"
 showFullyParen (If b t e) = "(if " ++ (showFullyParen b) ++ " then " ++ (showFullyParen t) ++ " else " ++ (showFullyParen e) ++ ")"
 showFullyParen (Let v a bod) = "(let " ++ v ++ " = " ++ (showFullyParen a) ++ " in " ++ (showFullyParen bod) ++ ")"
 showFullyParen (Lam v bod) = "(\\ " ++ v ++ " -> " ++ (showFullyParen bod) ++ ")"

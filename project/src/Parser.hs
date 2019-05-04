@@ -40,8 +40,12 @@ cons'' = do token $ literal "["
             x <- (token orExpr)
             token $ literal ","
             y <- (token cons)
+            token $ literal "]"
             case y of (Cons _ _) -> return (Cons x y)
+                      Nil        -> return (Cons x y)
                       _          -> return (Cons x (Cons y Nil))
+            -- case y of (Cons _ _) -> return (Cons x y)
+            --           _          -> return (Cons x (Cons y Nil))
 
 
 orExpr :: Parser Ast
@@ -60,7 +64,7 @@ multDivExpr :: Parser Ast
 multDivExpr = withInfix expExpr [("*", Mult), ("/", Div)]
 
 expExpr :: Parser Ast
-expExpr = withInfix negExp' [("**", IntOrFloatExp)]
+expExpr = withInfix negExp' [("**", IntExp), ("^", FloatExp)]
 
 negExp :: Parser Ast
 negExp = do token (literal "-")

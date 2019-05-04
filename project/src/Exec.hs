@@ -14,11 +14,11 @@ import EnvUnsafeLog
 
 data LangOut =
     ParseError -- ^ retuned when the string could not be parsed
-  | RuntimeError String [String]
+  | RuntimeError String [String] [WarningMsg]
   -- ^ retuned when there is a runtime error
   -- first String is the error message
   -- this list of Strings is what is printed before the error was encountered
-  | Ret Val [String]
+  | Ret Val [String] [WarningMsg]
   -- ^ retuned when the program runs successfully and return a value
   -- The Val is the evaluation result of the program
   -- The list of String is what gets printed while running the program
@@ -30,11 +30,11 @@ exec s = let s' = (parse parser s)
          in case s' of
               Nothing -> ParseError
               Just (ast, h:s) -> ParseError
-              Just (ast, "") -> let warnings = warn ast
+              Just (ast, "") -> let warnings = Set.toList (warn ast)
                                     value = run ast
                                 in case value of
-                                     (Ok val, buffer) -> Ret val buffer
-                                     (Error msg, buffer) -> RuntimeError msg buffer
+                                     (Ok val, buffer) -> Ret val buffer warnings
+                                     (Error msg, buffer) -> RuntimeError msg buffer warnings
 
 -- | perform static checking on the program string, may be empty if there is a parse error
 warn :: Ast -> (Set WarningMsg)

@@ -66,7 +66,9 @@ check' (Mult x y) scope warnings =
   (check' x scope warnings) `Set.union` (check' y scope warnings)
 check' (Div x y) scope warnings =
   (check' x scope warnings) `Set.union` (check' y scope warnings)
-check' (IntOrFloatExp x y) scope warnings =
+check' (IntExp x y) scope warnings =
+  (check' x scope warnings) `Set.union` (check' y scope warnings)
+check' (FloatExp x y) scope warnings =
   (check' x scope warnings) `Set.union` (check' y scope warnings)
 check' (If cond ifTrue ifFalse) scope warnings =
   let condCheck = check' cond scope warnings
