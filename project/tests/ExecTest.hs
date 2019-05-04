@@ -70,10 +70,10 @@ tests = testGroup "ExecTest"
         assertEqual "true ||" (ParseError) (exec "true ||"),
     testCase "Boolean Not: " $
       do
-        assertEqual "! true" (Ret (B False) [] []) (exec "! true")
-        assertEqual "! false" (Ret (B True) [] []) (exec "! false")
-        assertEqual "! ! true" (Ret (B True) [] []) (exec "! ! true")
-        assertEqual "! 3" (RuntimeError "3 is not a bool" [] []) (exec "! 3")
+        assertEqual "not true" (Ret (B False) [] []) (exec "not true")
+        assertEqual "not false" (Ret (B True) [] []) (exec "not false")
+        assertEqual "not not true" (Ret (B True) [] []) (exec "not not true")
+        assertEqual "not 3" (RuntimeError "3 is not a bool" [] []) (exec "not 3")
     ],
   testGroup "Heterogeneous Boolean Expressions"
     [
@@ -87,20 +87,20 @@ tests = testGroup "ExecTest"
         assertEqual "true || false && true" (Ret (B True) [] []) (exec "true || false && true"),
     testCase "|| + !: " $
      do
-      assertEqual "!true || false" (Ret (B False) [] []) (exec "!true || false")
-      assertEqual "!false || !false" (Ret (B True) [] []) (exec "!false || !false")
-      assertEqual "false || !true" (Ret (B False) [] []) (exec "false || !true")
-      assertEqual "false || !3.0" (RuntimeError "3.0 is not a bool" [] []) (exec "false || !3.0")
+      assertEqual "not true || false" (Ret (B False) [] []) (exec " not true || false")
+      assertEqual "not false || !false" (Ret (B True) [] []) (exec "not false || not false")
+      assertEqual "false || not true" (Ret (B False) [] []) (exec "false || not true")
+      assertEqual "false || not 3.0" (RuntimeError "3.0 is not a bool" [] []) (exec "false || not 3.0")
       assertEqual "false ||" (ParseError) (exec "false ||")
-      assertEqual "|| !false" (ParseError) (exec "|| !false"),
+      assertEqual "|| not false" (ParseError) (exec "|| not false"),
     testCase "&& + !: " $
       do
-        assertEqual "!true && false" (Ret (B False) [] []) (exec "!true && false")
-        assertEqual "!false && !true" (Ret (B False) [] []) (exec "!false && !true")
-        assertEqual "false && !true" (Ret (B False) [] []) (exec "false && !true")
-        assertEqual "false && !3.0" (RuntimeError "3.0 is not a bool" [] []) (exec "false && !3.0")
+        assertEqual "not true && false" (Ret (B False) [] []) (exec "not true && false")
+        assertEqual "!false && not true" (Ret (B False) [] []) (exec "not false && not true")
+        assertEqual "false && not true" (Ret (B False) [] []) (exec "false && not true")
+        assertEqual "false && not 3.0" (RuntimeError "3.0 is not a bool" [] []) (exec "false && not 3.0")
         assertEqual "false &&" (ParseError) (exec "false &&")
-        assertEqual "&& !false" (ParseError) (exec "&& !false")
+        assertEqual "&& not false" (ParseError) (exec "&& not false")
     ],
   testGroup "Function Application"
     [

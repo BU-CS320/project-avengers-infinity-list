@@ -276,7 +276,7 @@ eval (Mult x y) =
      case (x', y') of
        (Left f1, Left f2)   -> return (F (f1 * f2))
        (Right i1, Right i2) -> return (I (i1 * i2))
-       (Right _, Left _)    -> err $ "TypeMismatch: Cannot subtract integer " ++ (showPretty x 0) ++ " and float " ++ (showPretty y 0)
+       (Right _, Left _)    -> err $ "TypeMismatch: Cannot multiply integer " ++ (showPretty x 0) ++ " and float " ++ (showPretty y 0)
        (Left _, Right _)    -> err $ "TypeMismatch: Cannot multiply float " ++ (showPretty x 0) ++ " and integer " ++ (showPretty y 0)
 eval (IntDiv x y) =
   do x' <- evalNum x
