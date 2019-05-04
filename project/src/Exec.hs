@@ -1,3 +1,8 @@
+{-|
+Module: Exec
+Description: Holds the exec function, as well as parseError and runtimeError catching mechanisms.  
+-}
+
 module Exec where
 
 import Data.Set (Set)
@@ -11,7 +16,7 @@ import ParserMonad
 import EnvUnsafeLog
 
 
-
+-- | LangOut holds ParseError, RuntimeError, or Safe values, with the print and WarningMessage buffers
 data LangOut =
     ParseError -- ^ retuned when the string could not be parsed
   | RuntimeError String [String] [WarningMsg]
