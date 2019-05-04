@@ -130,12 +130,12 @@ chars = do token $ literal "'"
            s <- token $ item
            token $ literal "'"
            return $ (ValChar s)
--- | parses the next string using varParser, which also works to parse strings. Returns as ValString
+-- | parses the next string using stringParser, which also works to parse strings. Returns as ValString
 strings :: Parser Ast
 strings = do token $ literal "\""
-             s <- token $ varParser
-             token $ literal "\""
-             return $ (ValString s)
+             s <- stringParser
+             return (ValString s)
+
 -- | parses the next bool using varParser, comparing it to "true" or "false" to return as ValBool
 bools :: Parser Ast
 bools = do s <- token $ varParser

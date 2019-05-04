@@ -79,6 +79,12 @@ stdLib = Map.fromList
 local :: (r -> r) -> EnvUnsafeLog r String a -> EnvUnsafeLog r String a
 local changeEnv comp  = EnvUnsafeLog (\e -> runEnvUnsafe comp (changeEnv e) )
 
+-- | helper method for persisting the print logs of applied or composed functions
+appendToBuffer :: (Unsafe Val, [String]) -> EnvUnsafeLog Env String Val
+appendToBuffer (Ok val, lst) = do addToBuffer lst
+                                  return val
+appendToBuffer (Error msg, lst) = do addToBuffer lst
+                                     err msg
 -- | filter for stdLib, helper functions to get items to be passed through
 filterHelper :: (a -> (Unsafe Val, [b])) -> [a] -> [a]
 filterHelper _ [] = []
@@ -105,7 +111,7 @@ valOf :: String -> EnvUnsafeLog Env String Val
 valOf var = do env <- getEnv
                case (Map.lookup var env) of
                   Just i  -> return i
-                  Nothing -> err "Variable not found!"
+                  Nothing -> err $ "Variable " ++ var ++ " is not defined or is not in scope"
 
 
 -- | helper functions that take care of type issues (use a "Error" when things have the wrong type
@@ -150,13 +156,14 @@ evalFun :: Ast -> EnvUnsafeLog Env String (Val -> (Unsafe Val, [String]))
 evalFun a = do a' <- eval a
                case a' of
                  Fun a' -> return a'
-                 _ -> err $ (showPretty a 0) ++ " is not a function"
+                 other -> err $ (show other) ++ " is not a function"
 -- | helper function for eval Print. Will add the string to the printBuffer, and return the EnvUnsafeLog with the buffer
 evalPrint :: Ast -> EnvUnsafeLog Env String Val
 evalPrint a = do a' <- eval a
                  let str = show a'
                  printBuffer str
                  return a'
+
 -- | helper function for eval Equals. Allows for multiple Val types to be considered "equal"
 equals :: Ast -> Ast -> EnvUnsafeLog Env String Val
 equals x y =
@@ -342,8 +349,8 @@ eval (App x y) =
   do x' <- evalFun x
      y' <- eval y
      case (x' y') of
-       (Ok val, lst) -> return val
-       _ -> err $ "Invalid function argument: " ++ (showPretty y 0)
+       (Ok val, lst) -> appendToBuffer (Ok val, lst)
+       (Error msg, lst) -> appendToBuffer (Error msg, lst)
 eval (Lam x bod) =
   do env <- getEnv
      return (Fun (\v -> runEnvUnsafe (eval bod) (Map.insert x v env)))
@@ -351,7 +358,8 @@ eval (Compose f g) =
   do f' <- evalFun f
      g' <- evalFun g
      return (Fun $ \x -> case (g' x) of
-       (Ok val, _) -> f' val
+       (Ok val, lst) -> case (f' val) of (Ok val', lst') -> (Ok val', lst ++ lst')
+                                         (Error msg, lst') -> (Error msg, lst ++ lst')
        (Error msg, ls) -> (Error msg, ls))
 
 

@@ -6,6 +6,7 @@ import System.Environment
 import CheckTest
 import EvalTest
 import ParserTest
+import ExecTest
 import ExecTest2
 
 main =
@@ -27,5 +28,6 @@ testSuite =
     EvalTest.tests,
     ParserTest.tests,
     CheckTest.tests,
+    ExecTest.tests,
     ExecTest2.tests
     ]
