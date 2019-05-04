@@ -232,6 +232,8 @@ example9' = "print(-5); let x = (-10) in x * 4; \"meep\""
 example10 = Print (App (App (Var "map") (Lam "x" (Plus (Var "x") (ValInt 10)))) (Cons (ValInt 1) (Cons (ValInt 2) (Cons (ValInt 3) (Cons (ValInt 4) (Cons (ValInt 5) Nil))))))
 example10' = "print(map (\\x -> x+10) (1:2:3:4:5))"
 
+composeEx = "let f = (\\x -> x + 4) in let g = (\\x -> x // 2) in f . g"
+
 tests = testGroup "parser Test"
       [
         testCase "showPretty tests: " $
