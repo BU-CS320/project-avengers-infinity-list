@@ -151,45 +151,27 @@ ifParser = do token $ literal "if"
               case2 <- parser
               return (If condition case1 case2)
 
+
 letParser :: Parser Ast
 letParser = do token $ literal "let"
-               x <- letDefinitions
-               return x
-
-letFinish :: Parser Ast
-letFinish = do token $ literal "in"
+               label <- varParser
+               token $ literal "="
+               assigned <- parser
+               token $ literal "in"
                ast <- parser
-               return ast
+               return (Let label assigned ast)
 
-letDefinitions :: Parser Ast
-letDefinitions = do label <- token varParser
-                    token $ literal "="
-                    assigned <- parser
-                    y <- nextLet <|> letFinish
-                    return $ Let label assigned y
-
-nextLet :: Parser Ast
-nextLet = do token $ literal ","
-             x <- letDefinitions
-             return x
 
 lambdaParser :: Parser Ast
 lambdaParser = do token $ literal "\\"
-                  x <- lambdaVarParser
-                  return x
-
-lambdaFinish :: Parser Ast
-lambdaFinish = do token $ literal "->"
+                  boundVar <- varParser
+                  token $ literal "->"
                   ast <- parser
-                  return ast
-
-lambdaVarParser :: Parser Ast
-lambdaVarParser = do x <- token varParser
-                     y <- lambdaVarParser <|> lambdaFinish
-                     return $ Lam x y
+                  return $ Lam boundVar ast
 
 parens :: Parser Ast
 parens = do token $ literal "("
             ast <- parser
             token $ literal ")"
             return ast
+
