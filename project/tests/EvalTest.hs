@@ -177,6 +177,11 @@ tests = testGroup "EvalTest"
         ((Error "Types don't match. Can only compare values of same type."),[])
         (run (GreaterThanOrEquals (ValInt 4) (ValFloat 5.0)))
       assertEqual "5 >= 4 =? "   ((Ok $ B True),[])  (run (GreaterThanOrEquals (ValInt 5) (ValInt 4))),
+      assertEqual "5 >= 4 =? "   ((Ok $ B True),[])  (run (GreaterThanOrEquals (ValInt 5) (ValInt 4)))
+      assertEqual "4 < 5.5=? "   (Error "Types don't match. Can only compare values of same type.",[]) (run (LessThan (ValInt 4) (ValFloat 5.5)))
+      assertEqual "5.5 > 4=? "   (Error "Types don't match. Can only compare values of same type.",[]) (run (GreaterThan (ValFloat 5.5) (ValInt 4)))
+      assertEqual "'a' <= 5=? "  (Error "Types don't match. Can only compare values of same type.",[]) (run (LessThanOrEquals (ValChar 'a') (ValInt 5)))
+      assertEqual "'a' >= 5=? "  (Error "Types don't match. Can only compare values of same type.",[]) (run (GreaterThanOrEquals (ValChar 'a') (ValInt 5))),
   testCase "Boolean Operators: " $
     do
       assertEqual "True and True" ((Ok $ B True),[]) (run (And (ValBool True) (ValBool True)))
@@ -186,11 +191,14 @@ tests = testGroup "EvalTest"
       assertEqual "True or True" ((Ok $ B True),[]) (run (Or (ValBool True) (ValBool True)))
       assertEqual "True or False" ((Ok $ B True),[]) (run (Or (ValBool True) (ValBool False)))
       assertEqual "False or True" ((Ok $ B True),[]) (run (Or (ValBool False) (ValBool True)))
-      assertEqual "False or False" ((Ok $ B False),[]) (run (Or (ValBool False) (ValBool False))),
+      assertEqual "False or False" ((Ok $ B False),[]) (run (Or (ValBool False) (ValBool False)))
+      assertEqual "True and 3"   (Error "3 is not a bool",[]) (run (And (ValBool True) (ValInt 3)))
+      assertEqual "False or 0"  (Error "0 is not a bool",[]) (run (Or (ValBool False) (ValInt 0))),
   testCase "If Condition: " $
     do
-      assertEqual "if 3 then 4 else 2 =? " ((Ok $ I 4),[]) (run (If (ValBool True) (ValInt 4) (ValInt 2)))
-      assertEqual "if 0 then 1 else 4 =? " ((Ok $ I 4),[]) (run (If (ValBool False) (ValInt 1) (ValInt 4))),
+      assertEqual "if True then 4 else 2 =? " ((Ok $ I 4),[]) (run (If (ValBool True) (ValInt 4) (ValInt 2)))
+      assertEqual "if False then 1 else 4 =? " ((Ok $ I 4),[]) (run (If (ValBool False) (ValInt 1) (ValInt 4)))
+      assertEqual "if 'a' then 4 else 2 =? " (Error "Condition ('a') must evaluate to a boolean",[]) (run (If (ValChar 'a') (ValInt 2) (ValInt 5))),
   testCase "Separator: " $
     do
       assertEqual "3;4 =? "    ((Ok $ I 4),[]) (run (Separator (ValInt 3) (ValInt 4)))
@@ -198,9 +206,11 @@ tests = testGroup "EvalTest"
   testCase "Let Statements: " $
     do
       assertEqual "let x = 4 in x * 2 =? " ((Ok $ I 8),[]) (run (Let ("x") (ValInt 4) (Mult (Var "x") (ValInt 2))))
-      assertEqual "let x = 4 in x - 1 =? " ((Ok $ I 3),[]) (run (Let ("x") (ValInt 4) (Minus (Var "x") (ValInt 1)))),
+      assertEqual "let x = 4 in x - 1 =? " ((Ok $ I 3),[]) (run (Let ("x") (ValInt 4) (Minus (Var "x") (ValInt 1))))
+      assertEqual "let x = 3 in x and true" (Error "x is not a bool",[]) (run (Let ("x") (ValInt 3) (And (Var "x") (ValBool True)))),
   testCase "App/Lam Statements: " $
     do
       assertEqual "((lam)x -> x) 3" ((Ok $ I 3),[]) (run (App (Lam ("x") (Var "x")) (ValInt 3)))
+      assertEqual "((lam)x -> x+3) true " (Error "x is not a number",[]) (run (App (Lam ("x") (Plus (Var "x") (ValInt 3))) (ValBool True)))
   ]
 
