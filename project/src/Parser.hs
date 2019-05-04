@@ -156,27 +156,49 @@ ifParser = do token $ literal "if"
               case2 <- parser
               return (If condition case1 case2)
 
--- | parses let = in statements, which must take in a Var for the first value, and can have any other parser value in the other two
+
+-- | parses let = in statements, which must take in a "let" for the first value, where the next parse value is the definitions
 letParser :: Parser Ast
 letParser = do token $ literal "let"
-               label <- varParser
-               token $ literal "="
-               assigned <- parser
-               token $ literal "in"
+               x <- letDefinitions
+               return x
+-- | parses the body of the let statement
+letFinish :: Parser Ast
+letFinish = do token $ literal "in"
                ast <- parser
-               return (Let label assigned ast)
+               return ast
+-- | parses the = in each variable defintion inside of let functions.
+letDefinitions :: Parser Ast
+letDefinitions = do label <- token varParser
+                    token $ literal "="
+                    assigned <- parser
+                    y <- nextLet <|> letFinish
+                    return $ Let label assigned y
 
--- | parses lambda functions, which must take in a variable, then any other parser value.
+-- | parses the comma between variables in multi-definition let functions
+nextLet :: Parser Ast
+nextLet = do token $ literal ","
+             x <- letDefinitions
+             return x
+
+-- | parses lambda functions, which must take in a lambda variable, or multiple variables
 lambdaParser :: Parser Ast
 lambdaParser = do token $ literal "\\"
-                  boundVar <- varParser
-                  token $ literal "->"
+                  x <- lambdaVarParser
+                  return x
+-- | parses the arrow that indicates the body of the lambda, which can hold any parsable value
+lambdaFinish :: Parser Ast
+lambdaFinish = do token $ literal "->"
                   ast <- parser
-                  return $ Lam boundVar ast
+                  return ast
+-- | parses the next lambda variable, or the lambda finish (body) of the lambda function.
+lambdaVarParser :: Parser Ast
+lambdaVarParser = do x <- token varParser
+                     y <- lambdaVarParser <|> lambdaFinish
+                     return $ Lam x y
 -- | parses all the parentheses before and after any parser operation.
 parens :: Parser Ast
 parens = do token $ literal "("
             ast <- parser
             token $ literal ")"
             return ast
-
