@@ -19,9 +19,9 @@ In reality, we have implemented all vanilla features and five of the low-value m
 <pre>
 Function composition operator (.)               (5pts)
 Haddock-style comments                          (5pts)
-Multiple argument lambdas                       (5pts)
-Multiple argument let                           (5pts)
-Continuous integration setup (Travis)           (5pts)
+Multiple-argument lambdas                       (5pts)
+Multiple-argument let                           (5pts)
+Continuous integration setup                    (5pts)
 -------------------------------------------------------
 TOTAL:                                          (25pts)
 </pre>
