@@ -1,3 +1,8 @@
+{- |
+Module: Eval
+Description: Eval is the evaluation system, controls what value will be returned
+-}
+
 module Eval where
 
 import Data.Map (Map)
@@ -12,7 +17,7 @@ import HelpShow
 import Ast
 import EnvUnsafeLog
 
--- the goal of the program is to return a value
+-- | the goal of the program is to return a value
 data Val = I Integer | B Bool | F Float | C Char
          | Ls [Val] | S [Char]
          | Fun (Val -> (Unsafe Val, [String])) -- since this is a functional language, one thing that can be returned is a function
@@ -38,6 +43,7 @@ instance Eq Val where
   (Ls (x:xs)) == (Ls (y:ys)) = (x == y) && ((Ls xs) == (Ls ys))
   _ == _ = False
 
+-- | Env is the environment mapping a string to a Val
 type Env = Map String Val
 
 stdLib = Map.fromList
@@ -68,10 +74,11 @@ stdLib = Map.fromList
                                                Fun fn -> ((Ok $ Ls (mapHelper fn ls)), [])
                                                _ -> (Error "first argument of map must be a function", [])
                                              _     -> (Error "can only call map on a list", []), [])))]
-
+-- | to be used for EnvUnsafeLog in eval
 local :: (r -> r) -> EnvUnsafeLog r String a -> EnvUnsafeLog r String a
 local changeEnv comp  = EnvUnsafeLog (\e -> runEnvUnsafe comp (changeEnv e) )
 
+-- | filter for stdLib
 filterHelper :: (a -> (Unsafe Val, [b])) -> [a] -> [a]
 filterHelper _ [] = []
 filterHelper func (head:body) = case (func head) of
@@ -79,18 +86,20 @@ filterHelper func (head:body) = case (func head) of
   (Ok (B False), log) -> (filterHelper func body)
   _ -> (head:body)
 
+-- | map for stdLib
 mapHelper :: (Val -> (Unsafe Val, [b])) -> [Val] -> [Val]
 mapHelper _ [] = []
 mapHelper func (head:body) = let (res, log) = func head in case res of
                                                              (Ok val) -> val:(mapHelper func body)
                                                              (Error msg) -> head:body
-
+-- | determines if the index given is valid, will catch if too large
 validListIndex :: [Val] -> Integer -> Either String Val
 validListIndex lst idx
   | (fromIntegral idx) >= (length lst) =
     Left $ "Index too large. Index given: " ++ (show idx) ++ " but maximum is: " ++ (show ((length lst) - 1))
   | otherwise          = Right (lst !! (fromIntegral idx))
 
+-- | helper function for eval Var that returns the EnvUnsafeLog of a Var
 valOf :: String -> EnvUnsafeLog Env String Val
 valOf var = do env <- getEnv
                case (Map.lookup var env) of
@@ -98,68 +107,68 @@ valOf var = do env <- getEnv
                   Nothing -> err "Variable not found!"
 
 
--- helper functions that take care of type issues (use a "Error" when things have the wron type
+-- | helper functions that take care of type issues (use a "Error" when things have the wrong type
 evalNum :: Ast -> EnvUnsafeLog Env String (Either Float Integer)
 evalNum a = do a' <- eval a
                case a' of
                  F f -> return (Left f)
                  I i -> return (Right i)
                  _   -> err "Not a number"
-
+-- | helper function for eval Int. Will determine if a Val is an integer, catches and errors otherwise
 evalInt :: Ast -> EnvUnsafeLog Env String Integer
 evalInt a = do a' <- eval a
                case a' of
                  I i -> return i
                  _ -> err "Not an int"
-
+-- | helper function for eval Float. Will determine if a Val is a float, catches and errors otherwise
 evalFloat :: Ast -> EnvUnsafeLog Env String Float
 evalFloat a = do a' <- eval a
                  case a' of
                    F f -> return f
                    _ -> err "Not a float"
-
+-- | helper function for eval char. Will determine if a Val is a Char, catches and errors otherwise
 evalChar :: Ast -> EnvUnsafeLog Env String Char
 evalChar a = do a' <- eval a
                 case a' of
                   C c -> return c
                   _ -> err "Not an int"
-
+-- | helper function for eval bool. Will determine if a Val is a Bool, catches and errors otherwise
 evalBool :: Ast -> EnvUnsafeLog Env String Bool
 evalBool a = do a' <- eval a
                 case a' of
                   B b -> return b
                   _ -> err "Not a bool"
-
+-- | helper function for eval list. Will determine if a Val is a List, catches and errors otherwise
 evalList :: Ast -> EnvUnsafeLog Env String [Val]
 evalList a = do a' <- eval a
                 case a' of
                   Ls x -> return x
                   _ -> err "Not a list"
-
+-- | helper function for functions. Will determine if a Val is a function, catches and errors otherwise.
 evalFun :: Ast -> EnvUnsafeLog Env String (Val -> (Unsafe Val, [String]))
 evalFun a = do a' <- eval a
                case a' of
                  Fun a' -> return a'
                  _ -> err "Not a function"
-
+-- | helper function for eval Print. Will add the string to the printBuffer, and return the EnvUnsafeLog with the buffer
 evalPrint :: Ast -> EnvUnsafeLog Env String Val
 evalPrint a = do a' <- eval a
                  let str = show a'
                  printBuffer str
                  return a'
-
+-- | helper function for eval Equals. Allows for multiple Val types to be considered "equal"
 equals :: Ast -> Ast -> EnvUnsafeLog Env String Val
 equals x y =
   do x' <- eval x
      y' <- eval y
      return (B (x' == y'))
-
+-- | helper function for eval NotEquals. Allows for multiple Val types to be considered "notEqual"
 notEquals :: Ast -> Ast -> EnvUnsafeLog Env String Val
 notEquals x y =
   do x' <- eval x
      y' <- eval y
      return (B (not $ x' == y'))
-
+-- | helper function for eval LessThan. Allows for multiple Val types to be considered "lessThan"
 lessThan :: Ast -> Ast -> EnvUnsafeLog Env String Val
 lessThan x y =
   do x' <- eval x
@@ -171,7 +180,7 @@ lessThan x y =
        (C x'', C y'') -> return (B (x'' < y''))
        (S x'', S y'') -> return (B (x'' < y''))
        _              -> return (B False)
-
+-- | helper function for eval LessThanOrEquals. Allows for multiple Val types to be considered "lessThanOrEquals"
 lessThanOrEquals :: Ast -> Ast -> EnvUnsafeLog Env String Val
 lessThanOrEquals x y =
   do x' <- eval x
@@ -183,7 +192,7 @@ lessThanOrEquals x y =
        (C x'', C y'') -> return (B (x'' <= y''))
        (S x'', S y'') -> return (B (x'' <= y''))
        _              -> return (B False)
-
+-- | helper function for eval GreaterThan. Allows for multiple Val types to be considered "greaterThan"
 greaterThan :: Ast -> Ast -> EnvUnsafeLog Env String Val
 greaterThan x y =
   do x' <- eval x
@@ -195,7 +204,7 @@ greaterThan x y =
        (C x'', C y'') -> return (B (x'' > y''))
        (S x'', S y'') -> return (B (x'' > y''))
        _              -> return (B False)
-
+-- | helper function for eval GreaterThanOrEquals. Allows for multiple Val types to be considered "greaterThanOrEquals"
 greaterThanOrEquals :: Ast -> Ast -> EnvUnsafeLog Env String Val
 greaterThanOrEquals x y =
   do x' <- eval x
@@ -207,7 +216,7 @@ greaterThanOrEquals x y =
        (C x'', C y'') -> return (B (x'' >= y''))
        (S x'', S y'') -> return (B (x'' >= y''))
        _              -> return (B False)
-
+-- | Main eval function: will evaluate the inputted AST
 eval :: Ast -> EnvUnsafeLog Env String Val
 eval (ValBool bool) = return (B bool)
 eval (ValInt int) = return (I int)

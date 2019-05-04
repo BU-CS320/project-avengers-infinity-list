@@ -9,7 +9,6 @@ import ParserMonad (parse)
 import Ast
 import Parser
 import Eval
---import LangParser (parser)
 import HelpShow
 -- provide tests that show your parser works
 
@@ -27,7 +26,7 @@ arbitrarySizedAst m | otherwise = do l <- arbitrarySizedAst (m `div` 2)  -- get 
                                      x <- elements ["x", "y", "z"]   -- will choose random element from the list
                                      ifAst <- arbitrarySizedIf m
                                      node <- elements [And l r, Or l r, Not l,
-                                                       Plus l r, Minus l r, Mult l r, IntDiv l r,
+                                                       Plus l r, Minus l r, Mult l r, IntDiv l r, FloatDiv l r,
                                                        Equals l r, NotEquals l r, LessThan l r, GreaterThan l r, LessThanOrEquals l r, GreaterThanOrEquals l r,
 
                                                        IntExp l r, FloatExp l r,
