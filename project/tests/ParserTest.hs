@@ -28,6 +28,7 @@ arbitrarySizedAst m | otherwise = do l <- arbitrarySizedAst (m `div` 2)  -- get 
                                      node <- elements [And l r, Or l r, Not l,
                                                        Plus l r, Minus l r, Mult l r, IntDiv l r, FloatDiv l r,
                                                        Equals l r, NotEquals l r, LessThan l r, GreaterThan l r, LessThanOrEquals l r, GreaterThanOrEquals l r,
+
                                                        IntExp l r, FloatExp l r,
 
 
@@ -236,6 +237,8 @@ example11' = "\\ x y z -> x + y + z"
 
 example12 = (Let "x" (ValInt 5) (Let "y" (ValInt 9) (Let "z" (ValInt 3) ((Var "x") `Plus` (Var "y") `Plus` (Var "z")))))
 example12' = "let x = 5, y = 9, z = 3 in x + y + z"
+
+composeEx = "let f = (\\x -> x + 4) in let g = (\\x -> x // 2) in f . g"
 
 tests = testGroup "parser Test"
       [

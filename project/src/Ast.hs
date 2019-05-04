@@ -28,9 +28,7 @@ data Ast = ValBool Bool
          | FloatDiv Ast Ast
          | IntExp Ast Ast
          | FloatExp Ast Ast
-
          | ValString String
-
          | Equals Ast Ast
          | NotEquals Ast Ast
          | LessThan Ast Ast
@@ -49,6 +47,7 @@ data Ast = ValBool Bool
          | Var String
          | Lam String Ast
          | App Ast Ast
+         | Compose Ast Ast
 
          | Separator Ast Ast
          | Print Ast
@@ -76,12 +75,13 @@ showPretty (ValBool False)  _  = "false"
 showPretty Nil _ = "[]"
 showPretty (Var s) _ = s
 
-showPretty (Lam v bod) i = parenthesize 1 i $ "\\ " ++ v ++ " -> " ++ (showPretty bod 1)
-showPretty (Let v a bod)  i = parenthesize 1 i $  "let " ++ v ++ " = " ++ (showPretty a 1) ++ " in " ++ (showPretty bod 1)
-showPretty (If b t e) i = parenthesize 1 i $  "if " ++ (showPretty b 1) ++ " then " ++ (showPretty t 1) ++ " else " ++ (showPretty e 1)
+showPretty (Lam v bod) i = parenthesize 0 i $ "\\ " ++ v ++ " -> " ++ (showPretty bod 0)
+showPretty (Let v a bod)  i = parenthesize 0 i $  "let " ++ v ++ " = " ++ (showPretty a 0) ++ " in " ++ (showPretty bod 0)
+showPretty (If b t e) i = parenthesize 0 i $  "if " ++ (showPretty b 1) ++ " then " ++ (showPretty t 0) ++ " else " ++ (showPretty e 0)
 
-showPretty (Separator l r) i = parenthesize 2 i $ (showPretty l 2) ++ " ; " ++ (showPretty r 3)
-showPretty (App l r) i = parenthesize 2 i $ (showPretty l 2) ++ " " ++ (showPretty r 3)
+showPretty (Separator l r) i = parenthesize 1 i $ (showPretty l 1) ++ " ; " ++ (showPretty r 1)
+showPretty (App l r) i = parenthesize 1 i $ (showPretty l 1) ++ " " ++ (showPretty r 1)
+showPretty (Compose l r) i = parenthesize 2 i $ (showPretty l 2) ++ " . " ++ (showPretty r 2)
 showPretty (Cons l r) i = parenthesize 4 i $ (showPretty l 5) ++ " : " ++ (showPretty r 4)
 showPretty (Or l r) i = parenthesize 6 i $ (showPretty l 6) ++ " || " ++ (showPretty r 7)
 showPretty (And l r) i = parenthesize 8 i $ (showPretty l 8) ++ " && " ++ (showPretty r 9)
@@ -117,7 +117,7 @@ showFullyParen (ValFloat f) = "(" ++ show f ++ ")"
 showFullyParen (ValBool True) = "(" ++ "true" ++ ")"
 showFullyParen (ValBool False) = "(" ++ "false" ++ ")"
 showFullyParen (ValChar c) = "(" ++ show c ++ ")"
-showFullyParen (ValString s) = "(\"" ++ s ++ "\")"
+showFullyParen (ValString s) = "(" ++ show s ++ ")"
 showFullyParen (And l r) = "(" ++ (showFullyParen l) ++ " && " ++ (showFullyParen r) ++ ")"
 showFullyParen (Or l r) = "(" ++ (showFullyParen l) ++ " || " ++ (showFullyParen r) ++ ")"
 showFullyParen (NegExp x) = "(-" ++ (showFullyParen x) ++ ")"
@@ -145,3 +145,4 @@ showFullyParen (GreaterThan l r) = "(" ++ (showFullyParen l) ++ " > " ++ (showFu
 showFullyParen (GreaterThanOrEquals l r) = "(" ++ (showFullyParen l) ++ " >= " ++ (showFullyParen r) ++ ")"
 showFullyParen (Separator l r) = "(" ++ (showFullyParen l) ++ " ; " ++ (showFullyParen r) ++ ")"
 showFullyParen (Print x) = "print(" ++ (showFullyParen x) ++ ")"
+showFullyParen (Compose f g) = "(" ++ (showFullyParen f) ++ " . " ++ (showFullyParen g) ++ ")"

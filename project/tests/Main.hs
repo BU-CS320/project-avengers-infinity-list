@@ -7,7 +7,7 @@ import CheckTest
 import EvalTest
 import ParserTest
 
-main = 
+main =
     do
         setEnv "TASTY_TIMEOUT" "60s"
         setEnv "TASTY_QUICKCHECK_TESTS" "2"
