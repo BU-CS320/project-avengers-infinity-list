@@ -7,11 +7,10 @@ import CheckTest
 import EvalTest
 import ParserTest
 import ExecTest
-import ExecTest2
 
 main =
     do
-        setEnv "TASTY_TIMEOUT" "60s"
+        setEnv "TASTY_TIMEOUT" "120s"
         setEnv "TASTY_QUICKCHECK_TESTS" "2"
         setEnv "TASTY_QUICKCHECK_MAX_SIZE" "50"
         defaultMain testSuite
@@ -24,10 +23,9 @@ testSuite =
   testGroup
     "allTests"
     [
-    --CheckTest.tests,
-    EvalTest.tests
-    -- ParserTest.tests,
-    -- CheckTest.tests,
-    -- ExecTest.tests,
-    -- ExecTest2.tests
+    CheckTest.tests,
+    EvalTest.tests,
+    ParserTest.tests,
+    CheckTest.tests,
+    ExecTest.tests
     ]

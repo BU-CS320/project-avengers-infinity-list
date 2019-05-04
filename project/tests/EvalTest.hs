@@ -176,7 +176,7 @@ tests = testGroup "EvalTest"
         "4 >= 5.0 =? "
         ((Error "Types don't match. Can only compare values of same type."),[])
         (run (GreaterThanOrEquals (ValInt 4) (ValFloat 5.0)))
-      assertEqual "5 >= 4 =? "   ((Ok $ B True),[])  (run (GreaterThanOrEquals (ValInt 5) (ValInt 4))),
+      assertEqual "5 >= 4 =? "   ((Ok $ B True),[])  (run (GreaterThanOrEquals (ValInt 5) (ValInt 4)))
       assertEqual "5 >= 4 =? "   ((Ok $ B True),[])  (run (GreaterThanOrEquals (ValInt 5) (ValInt 4)))
       assertEqual "4 < 5.5=? "   (Error "Types don't match. Can only compare values of same type.",[]) (run (LessThan (ValInt 4) (ValFloat 5.5)))
       assertEqual "5.5 > 4=? "   (Error "Types don't match. Can only compare values of same type.",[]) (run (GreaterThan (ValFloat 5.5) (ValInt 4)))
