@@ -308,7 +308,7 @@ eval (Cons x y) =
      case (y') of
        Ls list -> return (Ls (x':list))
        _ -> err $ "Second term (" ++ (showPretty y 0) ++ ") must be a list"
-eval (Concat x y) =
+eval (ListConcat x y) =
   do x' <- eval x
      y' <- eval y
      case (x', y') of

@@ -31,11 +31,11 @@ seps' = do x <- (token compose)
 compose = withInfix cons [(".", Compose)]
 -- | cons operator that holds all varieties of possible list parsers
 cons :: Parser Ast
-cons = brackets <|> cons' <|> orExpr
+cons = brackets <|> cons' <|> listConcatParser
 
 -- | right associative cons parser that accounts for two elements of a list seperated by a ":". Returns in (Cons x y) format.
 cons' :: Parser Ast
-cons' = do x <- (token orExpr)
+cons' = do x <- (token listConcatParser)
            token (literal ":")
            y <- (token cons) <|> nil
            case y of (Cons _ _) -> return (Cons x y)
@@ -49,17 +49,21 @@ brackets = do (token $ literal "[")
               case x of (Cons _ _) -> return x
                         _    -> return (Cons x Nil)
 
--- | cons'' parser that holds a commaParser and the next hierarchy, orExpr.
+-- | cons'' parser that holds a commaParser and the next hierarchy, listConcatParser.
 cons'' :: Parser Ast
-cons'' = commaParser <|> orExpr
+cons'' = commaParser <|> listConcatParser
 -- | commaParser that parses orExpr values separated by commas, to be returned as a list in (Cons x y) format
 commaParser :: Parser Ast
-commaParser = do x <- token orExpr
+commaParser = do x <- token listConcatParser
                  token $ literal ","
                  y <- token cons'' <|> nil
                  case y of (Cons _ _) -> return (Cons x y)
                            Nil        -> return (Cons x y)
                            _          -> return (Cons x (Cons y Nil))
+
+-- | parses List Concatenation expressions using the withInfix function. Links to next Parser Ast orExpr
+listConcatParser :: Parser Ast
+listConcatParser = withInfix orExpr [("++", ListConcat)]
 -- | parses Or expressions using the withInfix function. Links to next Parser AST andExpr.
 orExpr :: Parser Ast
 orExpr = withInfix andExpr [("||", Or)]
