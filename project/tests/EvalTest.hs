@@ -69,16 +69,71 @@ tests = testGroup "EvalTest"
       assertEqual "Strings "     ((Ok $ S "fe.d"),[])  (run (ValString "fe.d")),
   testCase "List Operators: " $
     do
-      assertEqual "Lists [1,2]++[3,4] " ((Ok $ Ls [I 1, I 2, I 3, I 4]),[]) (run (ListConcat (Cons (ValInt 1) (Cons (ValInt 2) Nil)) (Cons (ValInt 3) (Cons (ValInt 4) Nil)))),
+      assertEqual
+        "Lists [1,2]++[3,4] "
+        ((Ok $ Ls [I 1, I 2, I 3, I 4]),[])
+        (run (ListConcat (Cons (ValInt 1) (Cons (ValInt 2) Nil)) (Cons (ValInt 3) (Cons (ValInt 4) Nil))))
+      assertEqual
+        "[1,3] ++ 4"
+        (Error "TypeMismatch: second argument (4) must be a list", [])
+        (run (ListConcat (Cons (ValInt 1) (Cons (ValInt 3) Nil)) (ValInt 4)))
+      assertEqual
+        "4 ++ [1,3]"
+        (Error "TypeMismatch: first argument (4) must be a list", [])
+        (run (ListConcat (ValInt 4) (Cons (ValInt 1) (Cons (ValInt 3) Nil)))),
   testCase "Integer Arithmetic: " $
     do
       assertEqual "2 + 4 =? "    ((Ok $ I 6),[])    (run (Plus (ValInt 2) (ValInt 4)))
+      assertEqual
+        "2 + 4.0 =? "
+        ((Error "TypeMismatch: Cannot add integer 2 and float 4.0"),[])
+        (run (Plus (ValInt 2) (ValFloat 4.0)))
+      assertEqual
+        "2.0 + 4 =? "
+        ((Error "TypeMismatch: Cannot add float 2.0 and integer 4"),[])
+        (run (Plus (ValFloat 2.0) (ValInt 4)))
       assertEqual "2 - 4 =? "    ((Ok $ I (-2)),[]) (run (Minus (ValInt 2) (ValInt 4)))
+      assertEqual
+        "2 - 4.0 =? "
+        ((Error "TypeMismatch: Cannot subtract integer 2 and float 4.0"),[])
+        (run (Minus (ValInt 2) (ValFloat 4.0)))
+      assertEqual
+        "2.0 - 4 =? "
+        ((Error "TypeMismatch: Cannot subtract float 2.0 and integer 4"),[])
+        (run (Minus (ValFloat 2.0) (ValInt 4)))
       assertEqual "3 * 2 =? "    ((Ok $ I 6),[])    (run (Mult (ValInt 3) (ValInt 2)))
+      assertEqual
+        "2 * 4.0 =? "
+        ((Error "TypeMismatch: Cannot multiply integer 2 and float 4.0"),[])
+        (run (Mult (ValInt 2) (ValFloat 4.0)))
+      assertEqual
+        "2.0 * 4 =? "
+        ((Error "TypeMismatch: Cannot multiply float 2.0 and integer 4"),[])
+        (run (Mult (ValFloat 2.0) (ValInt 4)))
       assertEqual "3 // 2 =? "   ((Ok $ I 1),[])    (run (IntDiv (ValInt 3) (ValInt 2)))
+      assertEqual
+        "3.0 // 4 =? "
+        ((Error "TypeMismatch: Can only use // with Integer types"),[])
+        (run (IntDiv (ValFloat 3.0) (ValInt 4)))
+      assertEqual
+        "3 // 0 =? "
+        ((Error "Error: Division-by-Zero"),[])
+        (run (IntDiv (ValInt 3) (ValInt 0)))
       assertEqual "2 ** 4 =? "   ((Ok $ I 16),[])   (run (IntExp (ValInt 2) (ValInt 4)))
+      assertEqual
+        "3.0 ** 4 =? "
+        ((Error "TypeMismatch: Can only use ** with Integer types"),[])
+        (run (IntExp (ValFloat 3.0) (ValInt 4)))
       assertEqual "10 % 2 =? "   ((Ok $ I 0),[])    (run (Mod (ValInt 10) (ValInt 2)))
-      assertEqual "10 % 3 =? "   ((Ok $ I 1),[])    (run (Mod (ValInt 10) (ValInt 3))),
+      assertEqual "10 % 3 =? "   ((Ok $ I 1),[])    (run (Mod (ValInt 10) (ValInt 3)))
+      assertEqual
+        "3.0 % 4 =? "
+        ((Error "TypeMismatch: Can only use % with Integer types"),[])
+        (run (Mod (ValFloat 3.0) (ValInt 4)))
+      assertEqual
+        "3 % 0 =? "
+        ((Error "Error: Mod-by-Zero is undefined"),[])
+        (run (Mod (ValInt 3) (ValInt 0))),
   testCase "Floating-Point Arithmetic: " $
     do
       assertEqual "2.3 + 4.1 =? "    ((Ok $ F 6.3999996),[])    (run (Plus (ValFloat 2.3) (ValFloat 4.1)))
