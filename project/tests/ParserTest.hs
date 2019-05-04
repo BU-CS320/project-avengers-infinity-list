@@ -22,13 +22,14 @@ arbitrarySizedAst m | m < 1 = do i    <- arbitrary -- will choose a random Integ
                                  return $ node
 arbitrarySizedAst m | otherwise = do l <- arbitrarySizedAst (m `div` 2)  -- get ast half as big
                                      r <- arbitrarySizedAst (m `div` 2)  -- ditto
+                                     q <- elements [Nil, Cons l Nil]
                                      x <- elements ["x", "y", "z"]   -- will choose random element from the list
                                      ifAst <- arbitrarySizedIf m
                                      node <- elements [And l r, Or l r, Not l,
                                                        Plus l r, Minus l r, Mult l r, Div l r,
                                                        Equals l r, NotEquals l r, LessThan l r, GreaterThan l r, LessThanOrEquals l r, GreaterThanOrEquals l r,
                                                        IntOrFloatExp l r,
-                                                       Cons l r,
+                                                       Cons l q,
                                                        ListIndex l r, ifAst,
                                                        Let x l r, App l r, Lam x l
                                                       ]

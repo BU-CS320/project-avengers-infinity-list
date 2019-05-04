@@ -1,3 +1,8 @@
+{-|
+Module      : Ast
+Description : Syntax Tree
+
+-}
 module Ast where
 import Data.Map (Map)
 import Data.Set (Set)
@@ -11,6 +16,7 @@ import HelpShow
 
 import EnvUnsafeLog
 
+-- | The syntax tree
 data Ast = ValBool Bool
          | And Ast Ast | Or Ast Ast | Not Ast
 
@@ -48,9 +54,12 @@ data Ast = ValBool Bool
 --instance Show Ast where
 --  show ast = showPretty ast 0
 
-showPretty :: Ast  -- ^ The Ast to show
-            -> Integer  -- ^ The precedence of the root expression, see the doc for 'HelpShow.parenthesize' for more detail
-            -> String  -- ^ the minimally parenthesized string representing the input Ast
+-- | The AST to show
+showPretty :: Ast
+              -- ^ The precedence of the root expression, see the doc for 'HelpShow.parenthesize' for more detail
+            -> Integer
+              -- ^ The minimally parenthesized string representing the input Ast
+            -> String
 showPretty (ValInt i) _ =  if i < 0
                            then  "(" ++ show i ++ ")"
                            else show i
@@ -94,8 +103,10 @@ showPretty (Print x) i = parenthesize 15 i $ " print( " ++ (showPretty x 15) ++ 
 --
 
 -- | output the fully parenthesized statement
-showFullyParen :: Ast  -- ^ The Ast to show
-                -> String  -- ^ the fully parenthesized string representing the input Ast
+showFullyParen :: Ast
+                   -- ^ The Ast to show
+                -> String
+                   -- ^ the fully parenthesized string representing the input Ast
 showFullyParen (ValInt i) = "(" ++ show i ++ ")"
 showFullyParen (ValFloat f) = "(" ++ show f ++ ")"
 showFullyParen (ValBool True) = "(" ++ "true" ++ ")"
