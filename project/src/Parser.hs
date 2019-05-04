@@ -14,14 +14,16 @@ apps :: Parser Ast
 apps = withInfix seps [("",App)] -- the tokens eat up all the spaces so we split on the empty string
 
 seps :: Parser Ast
-seps = seps' <|> cons
+seps = seps' <|> compose
 
 --right associative
 seps' :: Parser Ast
-seps' = do x <- (token cons)
+seps' = do x <- (token compose)
            token (literal ";")
            y <- (token seps)
            return (Separator x y)
+
+compose = withInfix cons [(".", Compose)]
 
 cons :: Parser Ast
 cons = brackets <|> cons' <|> orExpr

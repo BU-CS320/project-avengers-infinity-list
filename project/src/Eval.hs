@@ -323,6 +323,12 @@ eval (App x y) =
 eval (Lam x bod) =
   do env <- getEnv
      return (Fun (\v -> runEnvUnsafe (eval bod) (Map.insert x v env)))
+eval (Compose f g) =
+  do f' <- evalFun f
+     g' <- evalFun g
+     return (Fun $ \x -> case (g' x) of
+       (Ok val, _) -> f' val
+       (Error msg, ls) -> (Error msg, ls))
 
 
 -- | helper function that runs with the default environment (for example, the stdLib in week 10)
