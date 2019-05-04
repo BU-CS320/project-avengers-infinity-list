@@ -24,5 +24,6 @@ testSuite =
     [
     --CheckTest.tests,
     EvalTest.tests,
-    ParserTest.tests
+    ParserTest.tests,
+    CheckTest.tests
     ]
