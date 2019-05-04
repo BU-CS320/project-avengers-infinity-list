@@ -425,7 +425,7 @@ tests = testGroup "ExecTest"
         assertEqual "3//"   (ParseError) (exec "3//"),
     testCase "Arithmetic: Exponentiation " $
       do
-         assertEqual "3.2^4.5" (Ret (F 187.575) [] []) (exec "3.2^4.5")
+         assertEqual "3.0^4.0" (Ret (F 81.0) [] []) (exec "3.0^4.0")
          assertEqual "3**4"    (Ret (I 81) [] []) (exec "3**4")
          assertEqual
            "3.2^4"
