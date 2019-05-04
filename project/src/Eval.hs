@@ -46,6 +46,7 @@ instance Eq Val where
 -- | Env is the environment mapping a string to a Val
 type Env = Map String Val
 
+-- | Library of useful functions for casting, lists, etc.
 stdLib = Map.fromList
   [("tail", Fun $ \ v -> case v of Ls (_:ls) -> ((Ok $ Ls ls), [])
                                    _         -> (Error "can only call tail on a non empty list", [])),
@@ -78,7 +79,7 @@ stdLib = Map.fromList
 local :: (r -> r) -> EnvUnsafeLog r String a -> EnvUnsafeLog r String a
 local changeEnv comp  = EnvUnsafeLog (\e -> runEnvUnsafe comp (changeEnv e) )
 
--- | filter for stdLib
+-- | filter for stdLib, helper functions to get items to be passed through
 filterHelper :: (a -> (Unsafe Val, [b])) -> [a] -> [a]
 filterHelper _ [] = []
 filterHelper func (head:body) = case (func head) of
@@ -86,7 +87,7 @@ filterHelper func (head:body) = case (func head) of
   (Ok (B False), log) -> (filterHelper func body)
   _ -> (head:body)
 
--- | map for stdLib
+-- | map for stdLib, helper function to get items to be passed through. Version of map.
 mapHelper :: (Val -> (Unsafe Val, [b])) -> [Val] -> [Val]
 mapHelper _ [] = []
 mapHelper func (head:body) = let (res, log) = func head in case res of
