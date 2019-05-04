@@ -27,7 +27,7 @@ data LangOut =
   -- ^ retuned when the program runs successfully and return a value
   -- The Val is the evaluation result of the program
   -- The list of String is what gets printed while running the program
-  deriving Show
+  deriving (Show,Eq)
 -- | surroundList takes a string that looks like list (i.e. [1,2,3]) and puts a parentheses around it
 surroundList :: String -> String
 surroundList "" = ""
