@@ -81,24 +81,27 @@ multDivExpr :: Parser Ast
 multDivExpr = withInfix expExpr [("*", Mult), ("/", Div), ("//", Div)]
 
 expExpr :: Parser Ast
-expExpr = withInfix listIndexExpr [("**", IntOrFloatExp)]
+expExpr = withInfix negExp' [("**", IntOrFloatExp)]
+
+negExp :: Parser Ast
+negExp = do token (literal "-")
+            x <- (token listIndexExpr)
+            return (NegExp x)
+
+negExp' :: Parser Ast
+negExp' = negExp <|> listIndexExpr
 
 listIndexExpr :: Parser Ast
 listIndexExpr = withInfix prefixExpr [("!!", ListIndex)]
 
 prefixExpr :: Parser Ast
-prefixExpr = notExp <|> negExp <|> printExp <|> atoms
+prefixExpr = notExp <|> printExp <|> atoms
 
 printExp :: Parser Ast
 printExp = do token (literal "print(")
               x <- parser
               token (literal ")")
               return (Print x)
-
-negExp :: Parser Ast
-negExp = do token (literal "-")
-            x <- (token prefixExpr)
-            return (NegExp x)
 
 atoms:: Parser Ast
 atoms = floats <|> ints <|> chars <|> strings <|> bools  <|>  nil <|> parens <|> ifParser <|> letParser <|>  lambdaParser <|> vars
