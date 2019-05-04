@@ -41,6 +41,7 @@ data Ast = ValBool Bool
          | Nil
          | Cons Ast Ast
          | ListIndex Ast Ast
+         | ListConcat Ast Ast
 
          | If Ast Ast Ast
          | Let String Ast Ast
@@ -103,8 +104,9 @@ showPretty (Mod l r) i = parenthesize 13 i $ (showPretty l 13) ++ " % " ++ (show
 showPretty (IntExp b e) i = parenthesize 14 i $ (showPretty b 14) ++ " ** " ++ (showPretty e 15)
 showPretty (FloatExp b e) i = parenthesize 14 i $ (showPretty b 14) ++ " ^ " ++ (showPretty e 15)
 showPretty (ListIndex lst idx) i = parenthesize 15 i $ (showPretty lst 15) ++ " !! " ++ (showPretty idx 16)
+showPretty (ListConcat lst1 lst2) i = parenthesize 15 i $ (showPretty lst1 15) ++ " ++ " ++ (showPretty lst2 16)
 showPretty (NegExp x) i = parenthesize 15 i $ " - " ++ (showPretty x 15)
-showPretty (Not l ) i = parenthesize 15 i $  " ! " ++ (showPretty l 15)
+showPretty (Not l ) i = parenthesize 15 i $  " not " ++ (showPretty l 15)
 showPretty (Print x) i = parenthesize 15 i $ " print( " ++ (showPretty x 15) ++ " )"
 --
 --
@@ -123,7 +125,7 @@ showFullyParen (ValString s) = "(" ++ show s ++ ")"
 showFullyParen (And l r) = "(" ++ (showFullyParen l) ++ " && " ++ (showFullyParen r) ++ ")"
 showFullyParen (Or l r) = "(" ++ (showFullyParen l) ++ " || " ++ (showFullyParen r) ++ ")"
 showFullyParen (NegExp x) = "(-" ++ (showFullyParen x) ++ ")"
-showFullyParen (Not a) = "(" ++ " ! " ++ (showFullyParen a) ++ ")"
+showFullyParen (Not a) = "(" ++ " not " ++ (showFullyParen a) ++ ")"
 showFullyParen (Plus l r) = "(" ++ (showFullyParen l) ++ " + " ++ (showFullyParen r) ++ ")"
 showFullyParen (Minus l r) = "(" ++ (showFullyParen l) ++ " - " ++ (showFullyParen r) ++ ")"
 showFullyParen (Mult l r) = "(" ++ (showFullyParen l) ++ " * " ++ (showFullyParen r) ++ ")"
@@ -140,6 +142,7 @@ showFullyParen (Var s) = "( " ++ s ++ ")"
 showFullyParen (Cons h t) = "(" ++ (showFullyParen h)  ++ " : " ++ (showFullyParen t) ++ ")"
 showFullyParen Nil = "( [] )"
 showFullyParen (ListIndex lst idx) = "(" ++ (showFullyParen lst) ++ " !! " ++ (showFullyParen idx) ++ ")"
+showFullyParen (ListConcat lst1 lst2) = "(" ++ (showFullyParen lst1) ++ " ++ " ++ (showFullyParen lst2) ++ ")"
 showFullyParen (Equals l r) = "(" ++ (showFullyParen l) ++ " == " ++ (showFullyParen r) ++ ")"
 showFullyParen (NotEquals l r) = "(" ++ (showFullyParen l) ++ " /= " ++ (showFullyParen r) ++ ")"
 showFullyParen (LessThan l r) = "(" ++ (showFullyParen l) ++ " < " ++ (showFullyParen r) ++ ")"
