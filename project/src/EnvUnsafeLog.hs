@@ -29,7 +29,7 @@ getEnv = EnvUnsafeLog $ \ env -> (Ok env, [])
 -- | places a string in the buffer value of EnvUnsafeLog
 printBuffer :: String -> EnvUnsafeLog e String ()
 printBuffer s = EnvUnsafeLog $ \ _ -> (Ok (), [s])
-
+-- | adds string value to buffer value of EnvUnsafeLog
 addToBuffer :: [String] -> EnvUnsafeLog e String ()
 addToBuffer ss = EnvUnsafeLog $ \ _ -> (Ok (), ss)
 
