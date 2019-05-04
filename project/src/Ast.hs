@@ -71,7 +71,7 @@ showPretty (ValFloat f) _ =  if f < 0
                              else show f
 showPretty (ValBool True) _ =  "true"
 showPretty (ValChar c) _ = show c
-showPretty (ValString s) _ = s
+showPretty (ValString s) _ = show s
 showPretty (ValBool False)  _  = "false"
 showPretty Nil _ = "[]"
 showPretty (Var s) _ = s
@@ -117,7 +117,7 @@ showFullyParen (ValFloat f) = "(" ++ show f ++ ")"
 showFullyParen (ValBool True) = "(" ++ "true" ++ ")"
 showFullyParen (ValBool False) = "(" ++ "false" ++ ")"
 showFullyParen (ValChar c) = "(" ++ show c ++ ")"
-showFullyParen (ValString s) = "(" ++ s ++ ")"
+showFullyParen (ValString s) = "(\"" ++ s ++ "\")"
 showFullyParen (And l r) = "(" ++ (showFullyParen l) ++ " && " ++ (showFullyParen r) ++ ")"
 showFullyParen (Or l r) = "(" ++ (showFullyParen l) ++ " || " ++ (showFullyParen r) ++ ")"
 showFullyParen (NegExp x) = "(-" ++ (showFullyParen x) ++ ")"
