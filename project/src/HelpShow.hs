@@ -1,3 +1,8 @@
+
+{- | 
+Module: HelpShow
+Description: This is a helper module for the functions showPretty and showFullyParen
+-}
 module HelpShow where
 
 import Control.Monad(ap)
@@ -7,20 +12,22 @@ import qualified Data.Set as Set
 
 
 
--- find a new name that doesn't conflict with a set of other names
+-- | Finds a new name that doesn't conflict with a set of other names
 findName :: String -> Set String -> String
 findName str avoidNames | Set.member str avoidNames = findName (str ++ "'") avoidNames
                         | otherwise                 = str
 
 
--- hint at some advanced features
+-- | Generates an infinite list of unique variable names
 varNames = [ [v] | v <- ['a' .. 'z']] ++ fmap (\ v -> v ++ "'") varNames
 
-
+-- | Datatype for new variable names
 data NewNames a = NewNames (Set String -> Integer -> (a,Integer)) -- TODO: move to lib
 
+-- | Function to get the value contained in NewNames
 runNewNames (NewNames f ) = f
 
+-- | Magic function that gets the first something in NewNames' something
 execNewNames (NewNames f ) a = fst $ f a 0
 
 instance Functor NewNames where
@@ -42,7 +49,7 @@ instance Monad NewNames where
   (NewNames g) >>= f =  NewNames $ \ avoid i -> case g avoid i of (a, i') -> runNewNames (f a) avoid i'
 
   
--- the entire point of this monad
+-- | The entire point of this monad--generates a new name
 freshName :: NewNames String
 freshName = NewNames $ \ avoid i -> (filter (\v -> not $ Set.member v avoid) varNames !! (fromIntegral i), i + 1)
 

@@ -1,3 +1,8 @@
+{- |
+Module: Check
+Description: This module scans a line of code for undefined variables and throws a warning if it detects one
+-}
+
 module Check where
 
 import Data.Set (Set)
@@ -22,9 +27,11 @@ data WarningMsg =
 check :: Ast -> Set WarningMsg
 check ast = check' ast Set.empty Set.empty
 
+-- | function to check if variable is defined in scope of parent
 inScopeVar :: String -> Set String -> Bool
 inScopeVar var scope = Set.member var scope
 
+-- | main helper function for check--handles all cases
 check' :: Ast -> Set String -> Set WarningMsg -> Set WarningMsg
 check' (ValInt _) _ warnings = warnings
 check' (ValBool _) _ warnings = warnings

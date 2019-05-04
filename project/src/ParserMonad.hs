@@ -1,3 +1,8 @@
+{- |
+Module: ParserMonad
+Description: Monad used for parsing code
+-}
+
 module ParserMonad where
 import Control.Monad(ap)
 
@@ -116,7 +121,7 @@ parserA <||> parserB = Parser $ \ input ->  case parse parserA input of
                                                               Just (b, rest) -> Just (Right b, rest)
                                                               Nothing        -> Nothing
 
--- like <||> but easier on the same type (from book)
+-- | like <||> but easier on the same type (from book)
 (<|>) :: Parser a -> Parser a -> Parser a
 l <|> r =
   do res <- l <||> r
@@ -125,7 +130,7 @@ l <|> r =
        Right a -> return a
 
 
--- take a parser and parse as much as possible into a list, always parse at least 1 thing, (from book)
+-- | take a parser and parse as much as possible into a list, always parse at least 1 thing, (from book)
 some :: Parser a -> Parser ([a])
 some pa = do a <- pa
              rest <- rep pa
@@ -133,29 +138,31 @@ some pa = do a <- pa
 
 
 
--- take a parser and parse as much as possible into a list, (in book as "many")
+-- | take a parser and parse as much as possible into a list, (in book as "many")
 rep :: Parser a -> Parser ([a])
 rep pa =  do res <- (some pa) <||> (return [])
              case res of Left ls  -> return ls
                          Right ls -> return ls
 
 
--- parse a digit (from book)
+-- | parse a digit (from book)
 digit :: Parser Char
 digit = sat isDigit
 
 
--- parse natural numbers, like "123", or "000230000"
+-- | parse natural numbers, like "123", or "000230000"
 natParser :: Parser Integer
 natParser =  do digits <- some digit
                 return $ read digits
 
+-- | parse an integer
 intParser  :: Parser Integer
 intParser = do r <- (literal "-") <||> natParser
                case r of
                 Left _ -> fmap (0-) natParser
                 Right n -> return n
 
+-- | parse a floating-point number
 floatParser :: Parser Float
 floatParser = do sgn <- (literal "-") <||> (rep digit)
                  case sgn of
@@ -167,24 +174,25 @@ floatParser = do sgn <- (literal "-") <||> (rep digit)
                                  y <- (rep digit)
                                  return $ (read (x ++ "." ++ y) :: Float)
 
---parse spaces, throw them away
+-- | parse spaces, throw them away
 spaces :: Parser ()
 spaces =  do rep (sat isSpace)
              rep ((literal "{-") +++ (rep (sat (notSymbol))) +++ (literal "-}"))
              rep ((literal "--") +++ (rep (sat (/= '\n'))) +++ (literal "\n"))
              return ()
 
+-- | Parses the not symbol
 notSymbol  :: Char -> Bool
 notSymbol c = (isSpace c) || (isAlpha c)
 
--- a nicer version of eat spaces, eat the spaces before or after the parser (from book)
+-- | a nicer version of eat spaces, eat the spaces before or after the parser (from book)
 token :: Parser a -> Parser a
 token pa = do spaces
               a <- pa
               spaces
               return a
 
--- parse what we will consider a good variable name
+-- | parse what we will consider a good variable name
 varParser :: Parser String
 varParser =
   do head <- sat isAlpha
@@ -192,13 +200,13 @@ varParser =
      return $ head : tail
 
 
--- use the first working parser
+-- | use the first working parser
 oneOf :: [Parser a] -> Parser a
 oneOf [] = failParse
 oneOf (pa:rest) = pa <|> oneOf rest
 
 
--- handle infix parsing with left associativity
+-- | handle infix parsing with left associativity
 withInfix :: Parser a -> [(String, a -> a -> a)] -> Parser a
 withInfix pa ls = let operators = fmap fst ls
                       opParsers = fmap (\ s -> token $ literal s) operators
