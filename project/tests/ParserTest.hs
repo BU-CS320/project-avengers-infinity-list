@@ -12,6 +12,7 @@ import Eval
 import HelpShow
 -- provide tests that show your parser works
 
+  
 instance Arbitrary Ast where
     arbitrary = sized arbitrarySizedAst
 

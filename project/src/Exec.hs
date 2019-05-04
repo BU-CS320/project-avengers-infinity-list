@@ -1,3 +1,8 @@
+{-|
+Module: Exec
+Description: Holds the exec function, as well as parseError and runtimeError catching mechanisms.  
+-}
+
 module Exec where
 
 import Data.Set (Set)
@@ -11,7 +16,7 @@ import ParserMonad
 import EnvUnsafeLog
 
 
-
+-- | LangOut holds ParseError, RuntimeError, or Safe values, with the print and WarningMessage buffers
 data LangOut =
     ParseError -- ^ retuned when the string could not be parsed
   | RuntimeError String [String] [WarningMsg]
@@ -24,10 +29,17 @@ data LangOut =
   -- The list of String is what gets printed while running the program
   deriving Show
 
+surroundList :: String -> String
+surroundList "" = ""
+surroundList (x:xs)
+  | x == '[' = "(" ++ x:(surroundList xs)
+  | x == ']' =  x:")" ++ (surroundList xs)
+  | otherwise = x:surroundList xs
+
 -- | execute the program as a string and get the result
 exec :: String -> LangOut
-exec s = let s' = (parse parser s)
-         in case s' of
+exec s = let s' = (surroundList s); s'' = (parse parser s')
+         in case s'' of
               Nothing -> ParseError
               Just (ast, h:s) -> ParseError
               Just (ast, "") -> let warnings = Set.toList (warn ast)
