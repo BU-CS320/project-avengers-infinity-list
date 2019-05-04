@@ -187,7 +187,7 @@ lessThan x y =
        (B x'', B y'') -> return (B (x'' < y''))
        (C x'', C y'') -> return (B (x'' < y''))
        (S x'', S y'') -> return (B (x'' < y''))
-       _              -> return (B False)
+       _              -> err $ "Types don't match. Can only compare values of same type."
 -- | helper function for eval LessThanOrEquals. Allows for multiple Val types to be considered "lessThanOrEquals"
 lessThanOrEquals :: Ast -> Ast -> EnvUnsafeLog Env String Val
 lessThanOrEquals x y =
@@ -199,7 +199,7 @@ lessThanOrEquals x y =
        (B x'', B y'') -> return (B (x'' <= y''))
        (C x'', C y'') -> return (B (x'' <= y''))
        (S x'', S y'') -> return (B (x'' <= y''))
-       _              -> return (B False)
+       _              -> err $ "Types don't match. Can only compare values of same type."
 -- | helper function for eval GreaterThan. Allows for multiple Val types to be considered "greaterThan"
 greaterThan :: Ast -> Ast -> EnvUnsafeLog Env String Val
 greaterThan x y =
@@ -211,7 +211,7 @@ greaterThan x y =
        (B x'', B y'') -> return (B (x'' > y''))
        (C x'', C y'') -> return (B (x'' > y''))
        (S x'', S y'') -> return (B (x'' > y''))
-       _              -> return (B False)
+       _              -> err $ "Types don't match. Can only compare values of same type."
 -- | helper function for eval GreaterThanOrEquals. Allows for multiple Val types to be considered "greaterThanOrEquals"
 greaterThanOrEquals :: Ast -> Ast -> EnvUnsafeLog Env String Val
 greaterThanOrEquals x y =
@@ -223,7 +223,7 @@ greaterThanOrEquals x y =
        (B x'', B y'') -> return (B (x'' >= y''))
        (C x'', C y'') -> return (B (x'' >= y''))
        (S x'', S y'') -> return (B (x'' >= y''))
-       _              -> return (B False)
+       _              -> err $ "Types don't match. Can only compare values of same type."
 -- | Main eval function: will evaluate the inputted AST
 eval :: Ast -> EnvUnsafeLog Env String Val
 eval (ValBool bool) = return (B bool)

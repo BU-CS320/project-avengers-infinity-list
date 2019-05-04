@@ -199,5 +199,64 @@ tests = testGroup "ExecTest2: To be merged..."
           (exec "2**3^4")
         assertEqual "(4)///5+1" (ParseError) (exec "(4)///5+1")
         assertEqual "5+-" (ParseError) (exec "5+-")
-        assertEqual "%//4" (ParseError) (exec "%//4")
+        assertEqual "%//4" (ParseError) (exec "%//4"),
+
+    testCase "Seperator " $
+      do
+         assertEqual "5;4" (Ret (I 4) [] []) (exec "5;4")
+         assertEqual "14;3" (Ret (I 3) [] []) (exec "14;3")
+         assertEqual "14;true" (Ret (B True) [] []) (exec "14;true")
+         assertEqual "false;'c'" (Ret (C 'c') [] []) (exec "false;'c'")
+         assertEqual "5;5+3-10"  (Ret (I (-2)) [] []) (exec "5;5+3-10")
+         assertEqual "5;10%3*2"  (Ret (I 2) [] []) (exec "5;10%3*2")
+         assertEqual "10%3*2;5"  (Ret (I 5) [] []) (exec "10%3*2;5")
+         assertEqual
+           "true;x"
+           (RuntimeError "Variable not found!" [] [UndefinedVarUse "x is not in scope"])
+           (exec "true;x")
+         assertEqual "1;" (ParseError) (exec "1;")
+         assertEqual ";10"  (ParseError) (exec ";10")
+         assertEqual "10;*10" (ParseError) (exec "10;*10"),
+
+    testCase "Boolean Comparison Operators " $
+      do
+        assertEqual "10==10" (Ret (B True) [] []) (exec "10==10")
+        assertEqual "14.2==14.2" (Ret (B True) [] []) (exec "14.2==14.2")
+        assertEqual "10==true" (Ret (B False) [] []) (exec "10==true")
+        assertEqual "10/=10"   (Ret (B False) [] []) (exec "10/=10")
+        assertEqual "14/=15.2"  (Ret (B True) [] []) (exec "14/=15.2")
+        assertEqual "15/='c'" (Ret (B True) [] []) (exec "15/='c'")
+        assertEqual "15.5<17.5"   (Ret (B True) [] []) (exec "15.5<17.5")
+        assertEqual "17<15"   (Ret (B False) [] []) (exec "17<15")
+        assertEqual "17.3>14.3"   (Ret (B True) [] []) (exec "17.3>14.3")
+        assertEqual "90>201"  (Ret (B False) [] []) (exec "90>201")
+        assertEqual "90.1<=90.1"  (Ret (B True) [] []) (exec "90.1<=90.1")
+        assertEqual "90<=101"   (Ret (B True) [] []) (exec "90<=101")
+        assertEqual "90.1<=80.1" (Ret (B False) [] []) (exec "90.1<= 80.1")
+        assertEqual "90>=90"     (Ret (B True) [] []) (exec "90>=90")
+        assertEqual "20.7>=19.8" (Ret (B True) [] []) (exec "20.7>=19.8")
+        assertEqual "90>=101"    (Ret (B False) [] []) (exec "90>=101")
+        assertEqual
+          "15<15.2"
+          (RuntimeError "Types don't match. Can only compare values of same type." [] [])
+          (exec "15<15.2")
+        assertEqual
+          "15.3<='i'"
+          (RuntimeError "Types don't match. Can only compare values of same type." [] [])
+          (exec "15.3>=10")
+        assertEqual
+          "15.4>= 9"
+          (RuntimeError "Types don't match. Can only compare values of same type." [] [])
+          (exec "15.4>=9")
+        assertEqual
+          "15.8>x"
+          (RuntimeError "Variable not found!" [] [UndefinedVarUse "x is not in scope"])
+          (exec "15.8>x")
+        assertEqual "15>>" (ParseError) (exec "15>>")
+        assertEqual "<16"  (ParseError) (exec "<16")
+        assertEqual "<='c'" (ParseError) (exec "<='c'")
+        assertEqual "true>=" (ParseError) (exec "true>=")
+
+
+
   ]
