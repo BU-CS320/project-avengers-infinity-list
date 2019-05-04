@@ -49,32 +49,32 @@ type Env = Map String Val
 -- | Library of useful functions for casting, lists, etc.
 stdLib = Map.fromList
   [("tail", Fun $ \ v -> case v of Ls (_:ls) -> ((Ok $ Ls ls), [])
-                                   _         -> (Error "can only call tail on a non empty list", [])),
+                                   _         -> (Error $ "Argument (" ++ (show v) ++ ") must be a non empty list", [])),
    ("head", Fun $ \ v -> case v of Ls (head:_) -> ((Ok $ head), [])
-                                   _           -> (Error "can only call head on a non empty list", [])),
+                                   _           -> (Error "Can only call head on a non empty list", [])),
    ("len", Fun $ \ v -> case v of Ls ls -> ((Ok $ (I (fromIntegral (length ls)))), [])
-                                  _     -> (Error "can only call length on a list", [])),
+                                  _     -> (Error $ "Argument (" ++ (show v) ++ ") must be a non empty list", [])),
    ("ord", Fun $ \ v -> case v of C ch -> ((Ok $ (I (fromIntegral (ord ch)))), [])
-                                  _    -> (Error "can only call ord on a char", [])),
+                                  _    -> (Error "Can only call ord on a char", [])),
    ("chr", Fun $ \ v -> case v of I integer -> ((Ok $ (C (chr (fromIntegral integer)))), [])
-                                  _    -> (Error "can only call chr on a char", [])),
+                                  _    -> (Error "Can only call chr on a char", [])),
    ("float", Fun $ \ v -> case v of I integer -> ((Ok $ (F (realToFrac (fromIntegral integer)))), [])
-                                    _    -> (Error "can only call float on an int", [])),
+                                    _    -> (Error "Can only call float on an int", [])),
    ("int", Fun $ \ v -> case v of F fl -> ((Ok $ (F (fromIntegral (truncate fl)))), [])
-                                  _    -> (Error "can only call int on a float", [])),
+                                  _    -> (Error "Can only call int on a float", [])),
    ("elem", Fun $ \ var -> ((Ok $ Fun $ \ list -> case list of
                                              Ls ls -> ((Ok $ (B (elem var ls))), [])
-                                             _     -> (Error "can only call elem on a list", [])), [])),
+                                             _     -> (Error "Can only call elem on a list", [])), [])),
    ("filter", Fun $ \ func -> ((Ok $ Fun $ \ list -> case list of
                                              Ls ls -> case func of
                                                Fun fn -> ((Ok $ (Ls (filterHelper fn ls))), [])
-                                               _ -> (Error "first argument of filter must be a function", [])
-                                             _     -> (Error "can only call filter on a list", [])), [])),
+                                               _ -> (Error "First argument of filter must be a function", [])
+                                             _     -> (Error "Can only call filter on a list", [])), [])),
    ("map", Fun $ \ func -> ((Ok $ Fun $ \ list -> case list of
                                              Ls ls -> case func of
                                                Fun fn -> ((Ok $ Ls (mapHelper fn ls)), [])
-                                               _ -> (Error "first argument of map must be a function", [])
-                                             _     -> (Error "can only call map on a list", []), [])))]
+                                               _ -> (Error "First argument of map must be a function", [])
+                                             _     -> (Error "Can only call map on a list", []), [])))]
 -- | to be used for EnvUnsafeLog in eval
 local :: (r -> r) -> EnvUnsafeLog r String a -> EnvUnsafeLog r String a
 local changeEnv comp  = EnvUnsafeLog (\e -> runEnvUnsafe comp (changeEnv e) )
@@ -329,7 +329,7 @@ eval (App x y) =
      y' <- eval y
      case (x' y') of
        (Ok val, lst) -> return val
-       _ -> err $ "Function argument (" ++ (showPretty y 0) ++ ") cannot be another function"
+       _ -> err $ "Invalid function argument: " ++ (showPretty y 0)
 eval (Lam x bod) =
   do env <- getEnv
      return (Fun (\v -> runEnvUnsafe (eval bod) (Map.insert x v env)))
