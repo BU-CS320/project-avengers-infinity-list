@@ -71,10 +71,10 @@ comparison :: Parser Ast
 comparison = withInfix addSubExpr [("==", Equals), ("/=", NotEquals), ("<=", LessThanOrEquals), ("<", LessThan), (">=" , GreaterThanOrEquals), (">", GreaterThan)]
 -- | parses addition and subtraction expressions "+" "-" using the withInfix function. Links to the next Parser Ast multDivExpr.
 addSubExpr :: Parser Ast
-addSubExpr = withInfix multDivExpr [("+", Plus),("-", Minus)]
--- | parses multiply and divide expressions "*" "/" "//" using the withInfix function. Links to the next Parser Ast expExpr.
-multDivExpr :: Parser Ast
-multDivExpr = withInfix expExpr [("*", Mult), ("//", IntDiv), ("/", FloatDiv)]
+addSubExpr = withInfix multDivOrModExpr [("+", Plus),("-", Minus)]
+-- | parses multiply divide and modulus expressions "*" "/" "//" "%" using the withInfix function. Links to the next Parser Ast expExpr.
+multDivOrModExpr :: Parser Ast
+multDivOrModExpr = withInfix expExpr [("*", Mult), ("//", IntDiv), ("/", FloatDiv), ("%", Mod)]
 -- | parses exponent expressions "**" "^" using the withInfix function. Links to the next Parser Ast negExp'
 expExpr :: Parser Ast
 expExpr = withInfix negExp' [("**", IntExp), ("^", FloatExp)]
