@@ -2,7 +2,7 @@ module ParserTest where
 
 import Test.Tasty (testGroup)
 import Test.Tasty.HUnit (assertEqual, assertBool, testCase)
-import Test.Tasty.QuickCheck 
+import Test.Tasty.QuickCheck
 
 --import Lang (showFullyParen, showPretty, Ast(..))
 import ParserMonad (parse)
@@ -29,7 +29,7 @@ arbitrarySizedAst m | otherwise = do l <- arbitrarySizedAst (m `div` 2)  -- get 
                                      node <- elements [And l r, Or l r, Not l,
                                                        Plus l r, Minus l r, Mult l r, Div l r,
                                                        Equals l r, NotEquals l r, LessThan l r, GreaterThan l r, LessThanOrEquals l r, GreaterThanOrEquals l r,
-                                                       IntOrFloatExp l r,
+                                                       IntExp l r, FloatExp l r,
 
 
                                                        Cons l Nil,
@@ -53,7 +53,7 @@ e7 = showPretty (Equals (Minus (ValInt 100) (ValInt 2)) (Div (Div (ValInt 100) (
 example = let x = Var "x"
           in App (Lam "x" ( x `Plus` x))  (ValInt 7)
 example' = run example
-      
+
 example2 = let x = Var "x"; y = Var "y"
            in ((Lam "x" (Lam "y" ( x `Plus` y))) `App` (ValInt 7)) `App` (ValInt 4)
 example2' = run example2
