@@ -22,8 +22,7 @@ In reality, we have implemented all vanilla features and five of the low-value m
 - Multiple argument lambdas                     (5pts)
 - Multiple argument let                         (5pts)
 - Continuous integration setup (Travis)         (5pts)
-
-**TOTAL:                                          (25pts)**
+TOTAL:                                          (25pts)
 </pre>
 
 
