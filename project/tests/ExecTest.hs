@@ -554,6 +554,30 @@ tests = testGroup "ExecTest"
         assertEqual "<16"  (ParseError) (exec "<16")
         assertEqual "<='c'" (ParseError) (exec "<='c'")
         assertEqual "true>=" (ParseError) (exec "true>=")
+    ],
+  testGroup "Expressions with comments"
+    [
+    testCase "Multi-Line Comments: " $
+      do
+        assertEqual
+          "{- -} {- -} {- -} 1"
+          (Ret (I 1) [] [])
+          (exec "{- -} {- -} {- -} 1")
+        assertEqual
+          "1 {- -} + {- -} 2 == {- -} 3 + {- -} 5"
+          (Ret (B False) [] [])
+          (exec "1 {- -} + {- -} 2 == {- -} 3 + {- -} 5")
+        assertEqual
+          "3 + {- 9"
+          (ParseError)
+          (exec "3 + {- 9"),
+    testCase "Single-Line Comments: " $
+      do
+        assertEqual "5 + 5 --dsgsdg sdgsdg sdgsdg\n" (Ret (I 10) [] []) (exec "5 + 5 --dsgsdg sdgsdg sdgsdg\n")
+        assertEqual
+          "5 + 5 --sdgdsgs sdgsdg"
+          (RuntimeError "Variable sdgdsgs is not defined or is not in scope" [] [(UndefinedVarUse "sdgdsgs is not in scope"), (UndefinedVarUse "sdgsdg is not in scope")])
+          (exec "5 + 5 --sdgdsgs sdgsdg")
     ]
   ]
 
