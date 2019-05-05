@@ -4,6 +4,7 @@ Follow the [instructions](INSTRUCTIONS.md), use this space to document your proj
 
 ## Continuous Integration
 Travis-CI: https://travis-ci.com/BU-CS320/project-avengers-infinity-list/
+If you click the link above and log in to your GitHub account that has admin priviliges on the BU-CS320 repo, you will be redirected to the corresponding Travis-CI instance for this project. The three separate builds are each for commonly used versions of Haskell and in terms of a best practice, this would ensure safety across machines if this were made available to the public.
 
 ## Names
 - David Kirk (dsak@bu.edu)
